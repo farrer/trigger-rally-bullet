@@ -3,6 +3,8 @@
 #define _trigger_config_h
 
 #define PACKAGE_VERSION "@VERSION@"
+#define RENDER_DEBUG_ENGINE_RPM @RENDER_DEBUG_ENGINE_RPM@ 
+#define RENDER_DEBUG_TIME @RENDER_DEBUG_TIME@
 
 #endif
 

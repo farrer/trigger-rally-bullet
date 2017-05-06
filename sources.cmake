@@ -2,6 +2,7 @@
 set(TRIGGER_HEADERS
    src/include/app.h
    src/include/audio.h
+   src/include/bulletlink.h
    src/include/codriver.h
    src/include/exception.h
    src/include/hiscore1.h
@@ -39,6 +40,7 @@ set(PENGINE_LIB_SOURCES
 )
 
 set(PSIM_LIB_SOURCES
+   src/PSim/bulletlink.cpp
    src/PSim/rigidbody.cpp
    src/PSim/sim.cpp
    src/PSim/vehicle.cpp

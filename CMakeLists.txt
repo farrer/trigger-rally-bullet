@@ -20,10 +20,26 @@ set(BIN_DIR "${CMAKE_SOURCE_DIR}/bin")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/CMakeModules")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${BIN_DIR})
 
+# Some Options
+option(RENDER_DEBUG_ENGINE_RPM "Render car engine RPM" FALSE)
+option(RENDER_DEBUG_TIME "Render time as debug" FALSE)
+
+if(${RENDER_DEBUG_ENGINE_RPM})
+   set(RENDER_DEBUG_ENGINE_RPM 1)
+else(${RENDER_DEBUG_ENGINE_RPM})
+   set(RENDER_DEBUG_ENGINE_RPM 0)
+endif(${RENDER_DEBUG_ENGINE_RPM})
+
+if(${RENDER_DEBUG_TIME})
+   set(RENDER_DEBUG_TIME 1)
+else(${RENDER_DEBUG_TIME})
+   set(RENDER_DEBUG_TIME 0)
+endif(${RENDER_DEBUG_TIME})
+
 project(trigger-rally)
 
 # Some compiler options
-add_definitions(-Wall -std=c++11 -DNDEBUG)
+add_definitions(-Wall -g -std=c++11)
 
 # First, try to find required libraries
 FIND_PACKAGE(OpenGL REQUIRED)
@@ -37,6 +53,9 @@ include_directories(${SDL2_IMAGE_INCLUDE_DIR})
 
 FIND_PACKAGE(OpenAL REQUIRED)
 include_directories(${OPENAL_INCLUDE_DIR})
+
+FIND_PACKAGE(Bullet REQUIRED)
+include_directories(${BULLET_INCLUDE_DIRS})
 
 # include the ./src as default too
 include_directories(${PROJECT_SOURCE_DIR}/src)
@@ -58,7 +77,7 @@ add_library(tinyxml2lib ${TINYXML2_LIB_SOURCES} ${TRIGGER_HEADERS} )
 set(LIBRARIES 
    ${SDL2_IMAGE_LIBRARY} ${SDL2_LIBRARY} 
    m ${OPENGL_LIBRARY} GLU GLEW physfs
-   ${OPENAL_LIBRARY} alut pthread
+   ${OPENAL_LIBRARY} alut ${BULLET_LIBRARIES} pthread
 )
 
 # Make Binaries

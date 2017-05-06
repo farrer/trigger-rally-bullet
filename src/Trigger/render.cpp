@@ -1612,7 +1612,7 @@ void MainApp::renderStateGame(float eyetranslation)
           glPopMatrix(); // 2
       }
 
-  #ifndef NDEBUG
+  #if RENDER_DEBUG_ENGINE_RPM == 1
       // draw revs for debugging
       glPushMatrix(); // 2
       glTranslatef(1.17f, 0.52f, 0.0f);
@@ -1621,7 +1621,7 @@ void MainApp::renderStateGame(float eyetranslation)
       glPopMatrix(); // 2
   #endif
 
-#ifndef NDEBUG
+#if RENDER_DEBUG_TIME == 1
     // draw real time penalty for debugging
     glPushMatrix();
     glScalef(0.1f, 0.1f, 1.0f);

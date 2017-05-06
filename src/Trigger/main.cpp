@@ -8,6 +8,7 @@
 
 #include "main.h"
 #include "config.h"
+#include "bulletlink.h"
 
 #include <SDL2/SDL_main.h>
 #include <SDL2/SDL_platform.h>
@@ -1284,6 +1285,13 @@ bool MainApp::startGame(const std::string &filename)
   grabMouse(true);
   
   game = new TriggerGame(this);
+
+  /* Create a new bullet world for our new game */
+  if(BulletLink::isCreated())
+  {
+     BulletLink::deleteBulletWorld();
+  }
+  BulletLink::createBulletWorld();
   
   if (!game->loadVehicles())
   {
@@ -1445,6 +1453,12 @@ void MainApp::endGame(int gamestate)
   }
   
   finishRace(gamestate, coursetime);
+
+  /* Stop our bullet world simulation */
+  if(BulletLink::isCreated())
+  {
+     BulletLink::deleteBulletWorld();
+  }
 }
 
 ///
@@ -1529,6 +1543,8 @@ void MainApp::tickStateChoose(float delta)
 void MainApp::tickStateGame(float delta)
 {
   PVehicle *vehic = game->vehicle[0];
+
+  BulletLink::step(delta*1000, 1);
   
   if (game->isFinished()) {
     
