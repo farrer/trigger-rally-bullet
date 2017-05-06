@@ -788,50 +788,7 @@ public:
         return PUtil::decideRoadSurface(temp);
     }
 
-  void getContactInfo(ContactInfo &tci) {
-    float x = tci.pos.x * scale_hz_inv;
-    int xi = (int)x;
-    if (x < 0.0) xi--;
-    x -= (float)xi;
-    int xiw = xi & totmask, xiw2 = (xi+1) & totmask;
-
-    float y = tci.pos.y * scale_hz_inv;
-    int yi = (int)y;
-    if (y < 0.0) yi--;
-    y -= (float)yi;
-    int yiw = yi & totmask, yiw2 = (yi+1) & totmask;
-
-    float *data = &hmap[0];
-    const int cx = totsize;
-
-    float xv1,xv2;
-    if (y > 0.0) {
-      if (y < 1.0) {
-        if (x < y) {
-          tci.normal.x = data[yiw2*cx+xiw] - data[yiw2*cx+xiw2];
-          tci.normal.y = data[yiw*cx+xiw] - data[yiw2*cx+xiw];
-          xv1 = data[yiw*cx+xiw];
-          xv2 = INTERP(data[yiw2*cx+xiw],data[yiw2*cx+xiw2],x/y);
-        } else {
-          tci.normal.x = data[yiw*cx+xiw] - data[yiw*cx+xiw2];
-          tci.normal.y = data[yiw*cx+xiw2] - data[yiw2*cx+xiw2];
-          xv1 = INTERP(data[yiw*cx+xiw],data[yiw*cx+xiw2],(x-y)/(1.0-y));
-          xv2 = data[yiw2*cx+xiw2];
-        }
-        tci.pos.z = INTERP(xv1,xv2,y);
-      } else {
-        tci.normal.x = data[yiw2*cx+xiw] - data[yiw2*cx+xiw2];
-        tci.normal.y = data[yiw*cx+xiw] - data[yiw2*cx+xiw];
-        tci.pos.z = INTERP(data[yiw2*cx+xiw],data[yiw2*cx+xiw2],x);
-      }
-    } else {
-      tci.normal.x = data[yiw*cx+xiw] - data[yiw*cx+xiw2];
-      tci.normal.y = data[yiw*cx+xiw2] - data[yiw2*cx+xiw2];
-      tci.pos.z = INTERP(data[yiw*cx+xiw],data[yiw*cx+xiw2],x);
-    }
-    tci.normal.z = scale_hz;
-    tci.normal.normalize();
-  }
+  void getContactInfo(ContactInfo &tci);
 
   float getHeight(float x, float y) {
     return getInterp(x, y, &hmap[0]);
