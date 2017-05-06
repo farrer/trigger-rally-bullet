@@ -21,8 +21,6 @@ void PTerrain::unload()
 
   tile.clear();
 
-  hmap.clear();
-
   if(vertices) {
      delete[] vertices;
      vertices = NULL;
@@ -262,7 +260,6 @@ PTerrain::PTerrain (XMLElement *element, const std::string &filepath, PSSTexture
 
   //PUtil::outLog() << "img: " << totsize << " squared, " << img.getcc() << " cc\n";
 
-  hmap.resize(totsizesq);
   createVerticesFromImage(&img, blurfilter);
 
   img.unload();
@@ -440,8 +437,6 @@ void PTerrain::createVerticesFromImage(PImage* img,
             ((x + xi - (blurfilter[yi].size()-1)/2) & totmask)) * cc] * blurfilter[yi][xi];
         }
       }
-      //FIXME: stop using hmap and use only vertices instead 
-      hmap[y*totsize + x] = accum * scale_vt;
       
       vertices[vIndex] = (float)x * scale_hz;
       vertices[vIndex+1] = (float)y * scale_hz;

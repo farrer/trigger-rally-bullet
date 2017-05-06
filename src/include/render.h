@@ -558,8 +558,6 @@ protected:
 
   int cmaptotsize, cmaptilesize, cmaptotmask;
 
-  //std::vector<uint8> hmap;
-  std::vector<float> hmap; //FIXME: stop using hmap.
   float* vertices; /**< The vertices defining the whole terrain */
 
   PImage cmap;
