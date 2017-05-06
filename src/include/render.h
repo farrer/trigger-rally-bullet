@@ -790,9 +790,7 @@ public:
 
   void getContactInfo(ContactInfo &tci);
 
-  float getHeight(float x, float y) {
-    return getInterp(x, y, &hmap[0]);
-  }
+  float getHeight(float x, float y);
 
   float getFoliageLevel(float x, float y) {
     return getInterp(x, y, &fmap[0]);

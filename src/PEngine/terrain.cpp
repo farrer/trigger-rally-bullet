@@ -500,6 +500,44 @@ void PTerrain::getContactInfo(ContactInfo &tci) {
 }
 
 
+float PTerrain::getHeight(float x, float y) {
+  x *= scale_hz_inv;
+  int xi = (int)x;
+  if (x < 0.0) xi--;
+  x -= (float)xi;
+  int xiw = xi & totmask, xiw2 = (xiw+1) & totmask;
+
+  y *= scale_hz_inv;
+  int yi = (int)y;
+  if (y < 0.0) yi--;
+  y -= (float)yi;
+  int yiw = yi & totmask, yiw2 = (yiw+1) & totmask;
+
+  vec3f vetyw2xw = getVertex(xiw, yiw2);
+  vec3f vetywxw = getVertex(xiw, yiw);
+  vec3f vetywxw2 = getVertex(xiw2, yiw);
+  vec3f vetyw2xw2 = getVertex(xiw2, yiw2);
+
+  float xv1,xv2;
+  if (y > 0.0) {
+    if (y < 1.0) {
+      if (x < y) {
+        xv1 = vetywxw.z;
+        xv2 = INTERP(vetyw2xw.z, vetyw2xw2.z, x/y);
+      } else {
+        xv1 = INTERP(vetywxw.z, vetywxw2.z, (x-y)/(1.0-y));
+        xv2 = vetyw2xw2.z;
+      }
+      return INTERP(xv1,xv2,y);
+    } else {
+      return INTERP(vetyw2xw.z, vetyw2xw2.z, x);
+    }
+  } else {
+    return INTERP(vetywxw.z, vetywxw2.z, x);
+  }
+}
+
+
 PTerrainTile *PTerrain::getTile(int tilex, int tiley)
 {
   //FIXME: using lists to keep tiles is so much unefficient: remember:
