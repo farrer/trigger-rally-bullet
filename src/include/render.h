@@ -593,7 +593,7 @@ protected:
    * \param posy y vertices grid coordinate
    * \return vector with world coordinates of (posx, posy) */
   vec3f getVertex(int posx, int posy) {
-     int vertexIndex = ((posy * totsize) + posx) * 3;
+     int vertexIndex = (((posy & totmask) * totsize) + (posx & totmask)) * 3;
      return vec3f(
         (posx >= 0 && posx < totsize) ? vertices[vertexIndex] : posx*scale_hz, 
         (posy >= 0 && posy < totsize) ? vertices[vertexIndex+1] : posy*scale_hz,
