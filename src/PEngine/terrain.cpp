@@ -22,13 +22,18 @@ void PTerrain::unload()
   tile.clear();
 
   hmap.clear();
+
+  if(vertices) {
+     delete[] vertices;
+     vertices = NULL;
+  }
 }
 
 
 PTerrain::PTerrain (XMLElement *element, const std::string &filepath, PSSTexture &ssTexture) :
   loaded (false)
 {
-  unload();
+  vertices = NULL;
 
   std::string heightmap, colormap, terrainmap, roadmap, foliagemap, hudmap;
 
@@ -258,40 +263,7 @@ PTerrain::PTerrain (XMLElement *element, const std::string &filepath, PSSTexture
   //PUtil::outLog() << "img: " << totsize << " squared, " << img.getcc() << " cc\n";
 
   hmap.resize(totsizesq);
-
-#if 0
-  if (img.getcc() != 1) {
-    if (PUtil::isDebugLevel(DEBUGLEVEL_TEST))
-      PUtil::outLog() << "Warning: heightmap is not single channel\n";
-    int cc = img.getcc();
-    uint8 *dat = img.getData();
-    for (int s=0, d=0; d<totsizesq; s+=cc, d+=1) hmap[d] = dat[s];
-  } else {
-    std::copy(img.getData(), img.getData() + totsize * totsize, &hmap[0]);
-  }
-#else
-  if (img.getcc() != 1) {
-    if (PUtil::isDebugLevel(DEBUGLEVEL_TEST))
-      PUtil::outLog() << "Warning: heightmap is not single channel\n";
-  }
-
-  int cc = img.getcc();
-  uint8 *dat = img.getData();
-
-  for (int y=0; y<totsize; ++y) {
-    for (int x=0; x<totsize; ++x) {
-      float accum = 0.0;
-      for (int yi=0; yi < static_cast<int> (blurfilter.size()); ++yi) {
-        for (int xi=0; xi < static_cast<int> (blurfilter[yi].size()); ++xi) {
-          accum += (float)dat[
-            (((y + yi - (blurfilter.size()-1)/2) & totmask) * totsize +
-            ((x + xi - (blurfilter[yi].size()-1)/2) & totmask)) * cc] * blurfilter[yi][xi];
-        }
-      }
-      hmap[y*totsize + x] = accum * scale_vt;
-    }
-  }
-#endif
+  createVerticesFromImage(&img, blurfilter);
 
   img.unload();
 
@@ -436,6 +408,49 @@ PTerrain::PTerrain (XMLElement *element, const std::string &filepath, PSSTexture
   loaded = true;
 }
 
+void PTerrain::createVerticesFromImage(PImage* img, 
+      std::vector<std::vector<float>>& blurfilter) {
+  if (img->getcc() != 1) {
+    if (PUtil::isDebugLevel(DEBUGLEVEL_TEST))
+      PUtil::outLog() << "Warning: heightmap is not single channel\n";
+  }
+
+  int cc = img->getcc();
+  uint8 *dat = img->getData();
+
+  /* Go through the whole terrain height map, defining our vertices and 
+   * triangle indices with its data. 
+   * Note: This was needed while we'll direct use them at Bullet's collision
+   * shape. We could use the "tiles" data, but we shouldn't, because of:
+   * 1) At first the whole terrain tiles isn't on memory, and often (I hope) 
+   *    will not be (as ideally not rendered ones will be swaped with newer
+   *    rendering ones) 
+   * 2) tile.vert could be at GPU memory if using ARB_VBO, being uneffective
+   *    to access its data within bullet (as should lock the GPU with it).*/ 
+  vertices = new float[totsizesq * 3];
+  int vIndex = 0;
+
+  for (int y=0; y<totsize; ++y) {
+    for (int x=0; x<totsize; ++x) {
+      float accum = 0.0;
+      for (int yi=0; yi < static_cast<int> (blurfilter.size()); ++yi) {
+        for (int xi=0; xi < static_cast<int> (blurfilter[yi].size()); ++xi) {
+          accum += (float)dat[
+            (((y + yi - (blurfilter.size()-1)/2) & totmask) * totsize +
+            ((x + xi - (blurfilter[yi].size()-1)/2) & totmask)) * cc] * blurfilter[yi][xi];
+        }
+      }
+      //FIXME: stop using hmap and use only vertices instead 
+      hmap[y*totsize + x] = accum * scale_vt;
+      
+      vertices[vIndex] = (float)x * scale_hz;
+      vertices[vIndex+1] = (float)y * scale_hz;
+      vertices[vIndex+2] = (float) accum * scale_vt;
+      vIndex += 3;
+
+    }
+  }
+}
 
 
 PTerrainTile *PTerrain::getTile(int tilex, int tiley)

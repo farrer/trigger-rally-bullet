@@ -559,7 +559,8 @@ protected:
   int cmaptotsize, cmaptilesize, cmaptotmask;
 
   //std::vector<uint8> hmap;
-  std::vector<float> hmap;
+  std::vector<float> hmap; //FIXME: stop using hmap.
+  float* vertices; /**< The vertices defining the whole terrain */
 
   PImage cmap;
   PImage tmap; ///< Terrain map.
@@ -578,6 +579,12 @@ protected:
   PTexture *tex_hud_map;
 
 protected:
+
+  /*! Create vertices information from image data
+   * \param img pointer to image with terrain's heightmap representation
+   * \param blurfilter blur filter information for vertex smooth. */
+  void createVerticesFromImage(PImage* img,
+        std::vector<std::vector<float>>& blurfilter);
 
   PTerrainTile *getTile(int x, int y);
 
