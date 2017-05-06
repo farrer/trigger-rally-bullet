@@ -767,8 +767,8 @@ void MainApp::renderStateGame(float eyetranslation)
 {
     PVehicle *vehic = game->vehicle[0];
 
-    glClear(GL_DEPTH_BUFFER_BIT);
-    //glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+    /* We should clear the color buffer too. */
+    glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();

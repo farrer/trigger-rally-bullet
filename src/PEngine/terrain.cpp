@@ -440,6 +440,9 @@ PTerrain::PTerrain (XMLElement *element, const std::string &filepath, PSSTexture
 
 PTerrainTile *PTerrain::getTile(int tilex, int tiley)
 {
+  //FIXME: using lists to keep tiles is so much unefficient: remember:
+  //this function is called every frame, for each renderable tile!
+  
   // find the least recently used tile while searching for x,y
   int best_lru = 0, unused = 0;
   PTerrainTile *tileptr = nullptr;
