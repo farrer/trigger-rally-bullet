@@ -511,19 +511,10 @@ PTerrainTile *PTerrain::getTile(int tilex, int tiley)
   int tilesizep1 = tilesize + 1;
   for (int y=0; y<tilesizep1; ++y) {
     int posy = tileoffsety + y;
-    int sampley = posy & totmask;
     for (int x=0; x<tilesizep1; ++x) {
       int posx = tileoffsetx + x;
-      int samplex = posx & totmask;
-      int vertexNum = (sampley * totsize) + samplex;
-      int vertexIndex = vertexNum * 3;
 
-      /* Note: allowing rendering of positions outside our original 
-       * terrain mesh (thus the check while defining vertices). */
-      vec3f vert = vec3f(
-        (posx >= 0 && posx < totsize) ? vertices[vertexIndex] : posx*scale_hz, 
-        (posy >= 0 && posy < totsize) ? vertices[vertexIndex+1] : posy*scale_hz,
-        vertices[vertexIndex + 2]);
+      vec3f vert = getVertex(posx, posy);
 
       ramfile1.write(vert, sizeof(vec3f));
       if (tileptr->mins.z > vert.z)
@@ -793,7 +784,6 @@ void PTerrain::render(const vec3f &campos, const mat44f &camorim)
   }
 
   // Draw terrain
-
   glEnable(GL_TEXTURE_GEN_S);
   glEnable(GL_TEXTURE_GEN_T);
 
@@ -933,10 +923,6 @@ void PTerrain::render(const vec3f &campos, const mat44f &camorim)
 
 void PTerrain::drawSplat(float x, float y, float scale, float angle)
 {
-  float *hmd = &hmap[0];
-  int cx = totsize;
-  int cy = totsize;
-
   x *= scale_hz_inv;
   y *= scale_hz_inv;
 
@@ -960,18 +946,14 @@ void PTerrain::drawSplat(float x, float y, float scale, float angle)
   glTranslatef(-x, -y, 0.0f);
 
   for (int y2=miny; y2<maxy; y2++) {
-    int yc = y2 & (cy-1),
-      ycp1 = (yc+1) & (cy-1),
-      yc_cx = yc * cx,
-      ycp1_cx = ycp1 * cx;
-
     glBegin(GL_TRIANGLE_STRIP);
     for (int x2=minx; x2<maxx; x2++) {
-      int xc = x2 & (cx - 1);
+      vec3f vertex = getVertex(x2, y2 + 1);
       glTexCoord2i(x2, y2 + 1);
-      glVertex3f(x2 * scale_hz, (y2 + 1) * scale_hz, hmd[ycp1_cx + xc]);
+      glVertex3f(vertex.x, vertex.y, vertex.z);
+      vertex = getVertex(x2, y2);
       glTexCoord2i(x2, y2);
-      glVertex3f(x2 * scale_hz, y2 * scale_hz, hmd[yc_cx + xc]);
+      glVertex3f(vertex.x, vertex.y, vertex.z);
     }
     glEnd();
   }

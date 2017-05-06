@@ -586,6 +586,20 @@ protected:
   void createVerticesFromImage(PImage* img,
         std::vector<std::vector<float>>& blurfilter);
 
+  /*! Get a vertex from our terrain.
+   * \note Warping terrain, allowing values lessert than 0 and greater 
+   *       than max size.
+   * \param posx x vertices grid coordinate
+   * \param posy y vertices grid coordinate
+   * \return vector with world coordinates of (posx, posy) */
+  vec3f getVertex(int posx, int posy) {
+     int vertexIndex = ((posy * totsize) + posx) * 3;
+     return vec3f(
+        (posx >= 0 && posx < totsize) ? vertices[vertexIndex] : posx*scale_hz, 
+        (posy >= 0 && posy < totsize) ? vertices[vertexIndex+1] : posy*scale_hz,
+        vertices[vertexIndex + 2]);
+  };
+
   PTerrainTile *getTile(int x, int y);
 
   float getInterp(float x, float y, float *data) {
