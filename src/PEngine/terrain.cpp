@@ -499,6 +499,13 @@ PTerrainTile *PTerrain::getTile(int tilex, int tiley)
 
   ramfile1.clear();
 
+  /* Getting render vertex data. Note that trigger will render the terrain
+   * continously (ie: allow values lesser than 0 and greater than terrain size).
+   * For this we should check if we have vertice info or not.
+   * FIXME: when using bullet we'll have a problem here, as the terrain
+   * collision shape will not have those 'infinite' values. Maybe we should,
+   * for bullet, do not allow the player go to those positions (but still
+   * render them). */
   int tileoffsety = tiley * tilesize;
   int tileoffsetx = tilex * tilesize;
   int tilesizep1 = tilesize + 1;
@@ -508,10 +515,16 @@ PTerrainTile *PTerrain::getTile(int tilex, int tiley)
     for (int x=0; x<tilesizep1; ++x) {
       int posx = tileoffsetx + x;
       int samplex = posx & totmask;
+      int vertexNum = (sampley * totsize) + samplex;
+      int vertexIndex = vertexNum * 3;
+
+      /* Note: allowing rendering of positions outside our original 
+       * terrain mesh (thus the check while defining vertices). */
       vec3f vert = vec3f(
-        (float)posx * scale_hz,
-        (float)posy * scale_hz,
-        (float)hmap[(sampley * totsize) + samplex]);
+        (posx >= 0 && posx < totsize) ? vertices[vertexIndex] : posx*scale_hz, 
+        (posy >= 0 && posy < totsize) ? vertices[vertexIndex+1] : posy*scale_hz,
+        vertices[vertexIndex + 2]);
+
       ramfile1.write(vert, sizeof(vec3f));
       if (tileptr->mins.z > vert.z)
         tileptr->mins.z = vert.z;
@@ -519,6 +532,7 @@ PTerrainTile *PTerrain::getTile(int tilex, int tiley)
         tileptr->maxs.z = vert.z;
     }
   }
+  
   tileptr->vert.create(ramfile1.getSize(), PVBuffer::VertexContent, PVBuffer::StaticUsage, ramfile1.getData());
 
   //tileptr->maxs.z += 10.0;
