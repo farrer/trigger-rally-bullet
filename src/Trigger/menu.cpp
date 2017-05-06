@@ -6,6 +6,7 @@
 
 #include <sstream>
 #include "main.h"
+#include "config.h"
 
 const int MAX_RACES_ON_SCREEN   = 12;
 const int MAX_TIMES_ON_SCREEN   = 13;

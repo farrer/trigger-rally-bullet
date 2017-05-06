@@ -11,6 +11,9 @@
 // omitting it, but if you find it causes build problems, you may
 // want to re-enable it below. - jaz 20/10/2006
 
+#ifndef _triger_paudio_h
+#define _triger_paudio_h
+
 #if defined( USE_OPENAL )
 #define INCLUDE_OPENAL_HEADER
 #endif
@@ -84,5 +87,7 @@ public:
 
 #ifdef INCLUDE_OPENAL_HEADER
 #undef INCLUDE_OPENAL_HEADER
+#endif
+
 #endif
 

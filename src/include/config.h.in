@@ -1,0 +1,8 @@
+
+#ifndef _trigger_config_h
+#define _trigger_config_h
+
+#define PACKAGE_VERSION "@VERSION@"
+
+#endif
+

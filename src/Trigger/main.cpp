@@ -7,8 +7,10 @@
 
 
 #include "main.h"
+#include "config.h"
 
 #include <SDL2/SDL_main.h>
+#include <SDL2/SDL_platform.h>
 #include <SDL2/SDL_thread.h>
 
 #include <cctype>
@@ -49,7 +51,7 @@ void MainApp::config()
     player_unlocks = best_times.getUnlockData();
 
 #ifndef NDEBUG
-    PUtil::outLog() << "Player \"" cfg_playername << "\" unlocks:\n";
+    PUtil::outLog() << "Player \"" << cfg_playername << "\" unlocks:\n";
 
     for (const auto &s: player_unlocks)
         PUtil::outLog() << '\t' << s << '\n';
@@ -464,10 +466,10 @@ void MainApp::loadConfig()
   
   // Do config file management
   
-  std::string cfgfilename = "trigger-rally-" PACKAGE_VERSION ".config";
+  std::string cfgfilename = "trigger-rally-" PACKAGE_VERSION  ".config";
   
   if (!PHYSFS_exists(cfgfilename.c_str())) {
-#ifdef UNIX
+#ifndef __WIN32__
     const std::vector<std::string> cfghidingplaces {
         "/usr/share/games/trigger-rally/"
     };

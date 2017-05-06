@@ -26,16 +26,14 @@
 //
 // ... and they're all squashed into this one file!
 
-#ifdef UNIX
-//#define USE_NULL
+#include <SDL2/SDL_platform.h>
+
+#ifdef __WIN32__
+#define USE_FMOD
+#else
 #define USE_OPENAL
 #endif
 
-#ifdef WIN32
-//#define USE_NULL
-//#define USE_OPENAL
-#define USE_FMOD
-#endif
 
 #include "pengine.h"
 

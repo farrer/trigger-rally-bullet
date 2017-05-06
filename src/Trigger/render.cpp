@@ -19,6 +19,7 @@
 
 #include <cmath>
 #include "main.h"
+#include "config.h"
 
 void MainApp::resize()
 {
