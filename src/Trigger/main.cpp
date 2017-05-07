@@ -1544,7 +1544,7 @@ void MainApp::tickStateGame(float delta)
 {
   PVehicle *vehic = game->vehicle[0];
 
-  BulletLink::step(delta*1000, 1);
+  BulletLink::step(delta, 1);
   
   if (game->isFinished()) {
     

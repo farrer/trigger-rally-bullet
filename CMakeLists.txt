@@ -21,20 +21,9 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/CMakeModules")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${BIN_DIR})
 
 # Some Options
-option(RENDER_DEBUG_ENGINE_RPM "Render car engine RPM" FALSE)
-option(RENDER_DEBUG_TIME "Render time as debug" FALSE)
-
-if(${RENDER_DEBUG_ENGINE_RPM})
-   set(RENDER_DEBUG_ENGINE_RPM 1)
-else(${RENDER_DEBUG_ENGINE_RPM})
-   set(RENDER_DEBUG_ENGINE_RPM 0)
-endif(${RENDER_DEBUG_ENGINE_RPM})
-
-if(${RENDER_DEBUG_TIME})
-   set(RENDER_DEBUG_TIME 1)
-else(${RENDER_DEBUG_TIME})
-   set(RENDER_DEBUG_TIME 0)
-endif(${RENDER_DEBUG_TIME})
+option(RENDER_DEBUG_ENGINE_RPM "Render car engine RPM" OFF)
+option(RENDER_DEBUG_TIME "Render time as debug" OFF)
+option(RENDER_DEBUG_BULLET "Render only bullet physic primitives" OFF)
 
 project(trigger-rally)
 

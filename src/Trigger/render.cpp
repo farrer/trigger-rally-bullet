@@ -20,6 +20,7 @@
 #include <cmath>
 #include "main.h"
 #include "config.h"
+#include "bulletlink.h"
 
 void MainApp::resize()
 {
@@ -802,6 +803,9 @@ void MainApp::renderStateGame(float eyetranslation)
     float lpos[] = { 0.2, 0.5, 1.0, 0.0 };
     glLightfv(GL_LIGHT0, GL_POSITION, lpos);
 
+#if RENDER_DEBUG_BULLET
+    BulletLink::debugDraw();
+#else
     glColor3ub(255,255,255);
 
     glDisable(GL_LIGHTING);
@@ -1612,16 +1616,16 @@ void MainApp::renderStateGame(float eyetranslation)
           glPopMatrix(); // 2
       }
 
-  #if RENDER_DEBUG_ENGINE_RPM == 1
+#if RENDER_DEBUG_ENGINE_RPM
       // draw revs for debugging
       glPushMatrix(); // 2
       glTranslatef(1.17f, 0.52f, 0.0f);
       glScalef(0.2f, 0.2f, 1.0f);
       getSSRender().drawText(std::to_string(vehic->getEngineRPM()), PTEXT_HZA_RIGHT | PTEXT_VTA_TOP);
       glPopMatrix(); // 2
-  #endif
+#endif
 
-#if RENDER_DEBUG_TIME == 1
+#if RENDER_DEBUG_TIME
     // draw real time penalty for debugging
     glPushMatrix();
     glScalef(0.1f, 0.1f, 1.0f);
@@ -1824,7 +1828,7 @@ void MainApp::renderStateGame(float eyetranslation)
       glPopMatrix(); // 1
 
     }
-
+#endif
     glPopMatrix(); // 0
 
     glMatrixMode(GL_PROJECTION);

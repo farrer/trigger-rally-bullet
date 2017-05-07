@@ -8,6 +8,7 @@
 #define _trigger_bulletlink_h
 
 #include <btBulletDynamicsCommon.h>
+#include "bulletdebugdraw.h"
 
 #define TRIGGER_BULLET_FREQUENCY (1.0f / 240.0f)
 
@@ -38,7 +39,7 @@ class BulletLink
       static void debugDraw();
 
       /*! Step the rigid body
-       * \param timeStep -> current time of this step (in ms).
+       * \param timeStep -> current time of this step (in seconds).
        * \param maxSubSteps -> numer of bullet sub steps */
       static void step(btScalar timeStep, int maxSubSteps);
 
@@ -53,7 +54,7 @@ class BulletLink
       static btCollisionDispatcher* dispatcher;
       static btSequentialImpulseConstraintSolver* solver;
       static btDiscreteDynamicsWorld* dynamicsWorld;
-      //static BulletDebugDraw* bulletDebugDraw;
+      static BulletDebugDraw* bulletDebugDraw;
 };
 
 #endif
