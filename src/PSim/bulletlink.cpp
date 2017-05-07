@@ -30,6 +30,7 @@ void BulletLink::createBulletWorld() {
   dynamicsWorld->setGravity(btVector3(0, 0, -9.8f));
 #if RENDER_DEBUG_BULLET
   bulletDebugDraw = new BulletDebugDraw(); 
+  bulletDebugDraw->setDebugMode(btIDebugDraw::DBG_DrawWireframe);
   dynamicsWorld->setDebugDrawer(bulletDebugDraw);
 #else
   bulletDebugDraw = NULL;

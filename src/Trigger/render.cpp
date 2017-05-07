@@ -803,12 +803,13 @@ void MainApp::renderStateGame(float eyetranslation)
     float lpos[] = { 0.2, 0.5, 1.0, 0.0 };
     glLightfv(GL_LIGHT0, GL_POSITION, lpos);
 
-#if RENDER_DEBUG_BULLET
-    BulletLink::debugDraw();
-#else
     glColor3ub(255,255,255);
 
     glDisable(GL_LIGHTING);
+
+#if RENDER_DEBUG_BULLET
+    BulletLink::debugDraw();
+#else
 
     glActiveTextureARB(GL_TEXTURE1_ARB);
     glEnable(GL_TEXTURE_2D);

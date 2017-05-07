@@ -7,6 +7,7 @@
 
 #include "pengine.h"
 
+#include "bulletlink.h"
 #include "main.h"
 
 PTerrain::~PTerrain ()
@@ -21,18 +22,38 @@ void PTerrain::unload()
 
   tile.clear();
 
+  if(rigidBody) {
+    BulletLink::removeRigidBody(rigidBody);
+    delete rigidBody;
+    delete motionState;
+    delete colShape;
+    delete triangleArray;
+    rigidBody = NULL;
+    motionState = NULL;
+    colShape = NULL;
+    triangleArray = NULL;
+  }
+
   if(vertices) {
-     delete[] vertices;
-     vertices = NULL;
+    delete[] vertices;
+    vertices = NULL;
+  }
+  if(indices) {
+    delete[] indices;
+    indices = NULL;
   }
 }
 
 
 PTerrain::PTerrain (XMLElement *element, const std::string &filepath, PSSTexture &ssTexture) :
-  loaded (false)
+  loaded (false),
+  vertices(NULL),
+  indices(NULL),
+  rigidBody(NULL),
+  triangleArray(NULL),
+  motionState(NULL),
+  colShape(NULL)
 {
-  vertices = NULL;
-
   std::string heightmap, colormap, terrainmap, roadmap, foliagemap, hudmap;
 
   scale_hz = 1.0;
@@ -261,8 +282,9 @@ PTerrain::PTerrain (XMLElement *element, const std::string &filepath, PSSTexture
   //PUtil::outLog() << "img: " << totsize << " squared, " << img.getcc() << " cc\n";
 
   createVerticesFromImage(&img, blurfilter);
-
   img.unload();
+
+  createBulletStructures();
 
   try
   {
@@ -446,6 +468,64 @@ void PTerrain::createVerticesFromImage(PImage* img,
     }
   }
 }
+
+
+void PTerrain::createBulletStructures() {
+
+  /* As the ground is a nxn squared mesh, the total squares is given by
+   * (n-1)^2, where n in our case is totsize. */
+  int squaresPerAxis = (totsize - 1);
+  int totalSquares = (squaresPerAxis) * (squaresPerAxis);
+
+  /* We need 6 indices to define a square.  */
+  int totalIndices = 6 * totalSquares;
+
+  /* And, obviously, our number of vertices is given by n^2, so totsizesq */
+  int totalVertices = totsizesq;
+
+  /* Create and populate our indices structure. Note that bullet uses double
+   * sided triangle meshes by default, so our index definition order 
+   * (clockwise or counter-clock-wise) is irrelevant. */
+  indices = new int[totalIndices];
+  int curIndex = 0;
+  /* Note: let the compiler optimize the calculations, not us. Otherwise we'll
+   * be full of icx, iwy2, icsqtot and other variables of this type that
+   * obfuscate the code a lot (as is actually some of the functions here). */ 
+  for(int y = 0; y < squaresPerAxis; y++) {
+    for(int x = 0; x < squaresPerAxis; x++) {
+      /* face A */
+      indices[curIndex] = (y * totsize) + x;
+      indices[curIndex+1] = (y * totsize) + (x + 1);
+      indices[curIndex+2] = ((y + 1) * totsize) + x;
+      /* face B */
+      indices[curIndex+3] = indices[curIndex+2];
+      indices[curIndex+4] = indices[curIndex+1];
+      indices[curIndex+5] = ((y + 1) * totsize) + (x + 1);
+      /* Increment to next square */
+      curIndex += 6;
+    }
+  }
+
+  /* Create the terrain array for bullet and convert it into a 
+   * static rigid body */
+  triangleArray = new btTriangleIndexVertexArray(totalSquares * 2, 
+        indices, 3 * sizeof(int), totalVertices, vertices, 3 * sizeof(float));
+  colShape = new btBvhTriangleMeshShape(triangleArray, false);
+
+  btTransform startTransform;
+  startTransform.setIdentity();
+  motionState = new btDefaultMotionState(startTransform);
+
+  btRigidBody::btRigidBodyConstructionInfo info(0.0f, motionState, colShape);
+  //FIXME: test restitution and friction values to set which ones are
+  //good for trigger. Maybe friction could be track specific.
+  info.m_restitution = 0.8f;
+  info.m_friction = 0.8f;
+
+  rigidBody = new btRigidBody(info);
+  BulletLink::addRigidBody(rigidBody);
+}
+
 
 void PTerrain::getContactInfo(ContactInfo &tci) {
   float x = tci.pos.x * scale_hz_inv;

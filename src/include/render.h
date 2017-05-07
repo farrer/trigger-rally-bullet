@@ -6,6 +6,7 @@
 
 
 #include <cmath>
+#include <btBulletDynamicsCommon.h>
 #include "vbuffer.h"
 
 
@@ -559,6 +560,13 @@ protected:
   int cmaptotsize, cmaptilesize, cmaptotmask;
 
   float* vertices; /**< The vertices defining the whole terrain */
+  int* indices;    /**< The indices for the whole terrain (used by bullet) */
+
+  /* Bullet primitiver for the terrain definition */
+  btRigidBody*                 rigidBody;
+  btTriangleIndexVertexArray*  triangleArray;
+  btDefaultMotionState*        motionState;
+  btCollisionShape*            colShape;
 
   PImage cmap;
   PImage tmap; ///< Terrain map.
@@ -583,6 +591,9 @@ protected:
    * \param blurfilter blur filter information for vertex smooth. */
   void createVerticesFromImage(PImage* img,
         std::vector<std::vector<float>>& blurfilter);
+
+  /*! Create Bullet related structures to the terrain */
+  void createBulletStructures();
 
   /*! Get a vertex from our terrain.
    * \note Warping terrain, allowing values lessert than 0 and greater 
