@@ -7,8 +7,11 @@
 #define _trigger_rally_debug_draw_h
 
 #include <btBulletDynamicsCommon.h>
+#include <vector>
 
-/*! A implementation in GL of the Bullet Debug Draw interface */
+/*! A implementation in GL of the Bullet Debug Draw interface.
+ * \note only implemented line and triangle renderer, as it is what we need
+ * to visualize on Trigger right now. */
 class BulletDebugDraw: public btIDebugDraw {
    public:
       BulletDebugDraw();
@@ -26,9 +29,29 @@ class BulletDebugDraw: public btIDebugDraw {
       virtual void setDebugMode(int debugMode);
       virtual int getDebugMode() const;
 
-      void update();
+      /*! Render current primitives to our gl scene */
+      void render();
    private:
-      DebugDrawModes               mDebugModes;
+
+      /*! Struct to keep line information */
+      struct Line {
+        btVector3 from;
+        btVector3 to;
+        btVector3 color;
+      };
+
+      /*! Struct to keep triangle information */
+      struct Triangle {
+        btVector3 v0;
+        btVector3 v1;
+        btVector3 v2;
+        btVector3 color;
+        btScalar alpha;
+      };
+
+      DebugDrawModes curDebugMode; /**< Current debug draw mode */
+      std::vector<Line> lines; /**< lines that should be rendered at frame */
+      std::vector<Triangle> triangles; /**< triangles to render at frame */
 };
 
 

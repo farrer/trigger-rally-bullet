@@ -90,6 +90,7 @@ void BulletLink::tickCallBack() {
 void BulletLink::debugDraw() {
 #if RENDER_DEBUG_BULLET
   dynamicsWorld->debugDrawWorld();
+  bulletDebugDraw->render();
 #endif
 }
 
