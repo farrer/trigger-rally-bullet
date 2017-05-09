@@ -51,9 +51,12 @@ PVehicle *PSim::createVehicle(XMLElement *element, const std::string &filepath, 
   val = element->Attribute("pos");
   if (val) sscanf(val, "%f , %f , %f", &pos.x, &pos.y, &pos.z);
 
+  //XXX if you look at vehicles' files, the attribute is called orientation,
+  //not ori. but this function seems to never be called. Shouldn't we remove
+  //those never used functions?
   val = element->Attribute("ori");
-  float w, x, y, z;
   if (val) {
+    float w, x, y, z;
     sscanf(val, "%f , %f , %f , %f", &w, &x, &y, &z);
     ori = quatf(x, y, z, w);
   }

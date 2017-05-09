@@ -945,8 +945,8 @@ void PVehicle::tick(float delta)
   vehicle->applyEngineForce(-1*drivetorque*10, 3);
 
   /* Apply turn factor to front wheels */
-  vehicle->setSteeringValue(turnfactor, 0);
-  vehicle->setSteeringValue(turnfactor, 1);
+  vehicle->setSteeringValue(-1*turnfactor, 0);
+  vehicle->setSteeringValue(-1*turnfactor, 1);
 
 
     //(1.0f + fabsf(wheel_angvel) / 70.0f);

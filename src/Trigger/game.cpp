@@ -234,7 +234,7 @@ bool TriggerGame::loadLevel(const std::string &filename)
           val = walk2->Attribute("oridegrees");
           if (val) {
             float deg = atof(val);
-            start_ori = quatf(0.0f, 0.0f, -RADIANS(deg));
+            start_ori = quatf(0.0f, 0.0f, RADIANS(deg));
             lastCkptOri = start_ori;
           }
           
