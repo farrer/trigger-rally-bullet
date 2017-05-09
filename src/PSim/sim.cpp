@@ -35,16 +35,6 @@ PVehicleType *PSim::loadVehicleType(const std::string &filename, PSSModel &ssMod
   return vtype;
 }
 
-
-PRigidBody *PSim::createRigidBody()
-{
-  PRigidBody *newbody = new PRigidBody(*this);
-
-  body.push_back(newbody);
-
-  return newbody;
-}
-
 PVehicle *PSim::createVehicle(XMLElement *element, const std::string &filepath, PSSModel &ssModel)
 {
   const char *val;
@@ -56,14 +46,17 @@ PVehicle *PSim::createVehicle(XMLElement *element, const std::string &filepath, 
   }
 
   vec3f pos = vec3f::zero();
+  quatf ori = QUATERNION_IDENTITY;
 
   val = element->Attribute("pos");
   if (val) sscanf(val, "%f , %f , %f", &pos.x, &pos.y, &pos.z);
 
-  quatf ori = quatf::identity();
-
   val = element->Attribute("ori");
-  if (val) sscanf(val, "%f , %f , %f , %f", &ori.w, &ori.x, &ori.y, &ori.z);
+  float w, x, y, z;
+  if (val) {
+    sscanf(val, "%f , %f , %f , %f", &w, &x, &y, &z);
+    ori = quatf(x, y, z, w);
+  }
 
   return createVehicle(type, pos, ori, filepath, ssModel);
 }
@@ -85,10 +78,8 @@ PVehicle *PSim::createVehicle(PVehicleType *type, const vec3f &pos, const quatf 
 
   vec3f vpos = pos;
   if (terrain) vpos.z += terrain->getHeight(vpos.x, vpos.y);
-  newvehicle->getBody().setPosition(vpos);
-
-  newvehicle->getBody().setOrientation(ori);
-  newvehicle->getBody().updateMatrices();
+  
+  newvehicle->setPositionAndOrientation(vpos, ori);
 
   newvehicle->updateParts();
 
@@ -98,10 +89,6 @@ PVehicle *PSim::createVehicle(PVehicleType *type, const vec3f &pos, const quatf 
 
 void PSim::clear()
 {
-  for (unsigned int i=0; i<body.size(); ++i)
-    delete body[i];
-  body.clear();
-
   for (unsigned int i=0; i<vehicle.size(); ++i)
     delete vehicle[i];
   vehicle.clear();
@@ -123,10 +110,6 @@ void PSim::tick(float delta)
   for (int timestep=0; timestep<num; ++timestep) {
     for (unsigned int i=0; i<vehicle.size(); ++i) {
       vehicle[i]->tick(timeslice);
-    }
-
-    for (unsigned int i=0; i<body.size(); ++i) {
-      body[i]->tick(timeslice);
     }
 
     for (unsigned int i=0; i<vehicle.size(); ++i) {

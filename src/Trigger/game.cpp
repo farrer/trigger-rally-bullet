@@ -87,7 +87,7 @@ bool TriggerGame::loadLevel(const std::string &filename)
   sim->setGravity(vec3f(0.0,0.0,-9.81));
   
   start_pos = vec3f::zero();
-  start_ori = quatf::identity();
+  start_ori = QUATERNION_IDENTITY;
   
   number_of_laps = 1;
   targettime = 754.567f;
@@ -234,12 +234,16 @@ bool TriggerGame::loadLevel(const std::string &filename)
           val = walk2->Attribute("oridegrees");
           if (val) {
             float deg = atof(val);
-            start_ori.fromZAngle(-RADIANS(deg));
+            start_ori = quatf(0.0f, 0.0f, -RADIANS(deg));
             lastCkptOri = start_ori;
           }
           
           val = walk2->Attribute("ori");
-          if (val) sscanf(val, "%f , %f , %f , %f", &start_ori.w, &start_ori.x, &start_ori.y, &start_ori.z);
+          if (val) {
+            float x, y, z, w;
+            sscanf(val, "%f , %f , %f , %f", &w, &x, &y, &z);
+            start_ori = quatf(x, y, z, w);
+          }
         }
         else
         if (!strcmp(walk2->Value(), "codrivercp"))
@@ -432,11 +436,11 @@ void TriggerGame::tick(float delta)
   
   for (unsigned int i=0; i<vehicle.size(); i++) {
     
-    vec2f diff = makevec2f(checkpt[vehicle[i]->nextcp].pt) - makevec2f(vehicle[i]->body->getPosition());
+    vec2f diff = makevec2f(checkpt[vehicle[i]->nextcp].pt) - makevec2f(vehicle[i]->getPosition());
 
     static bool offroad_earlier = false;
 
-    const vec3f bodypos = vehicle[i]->body->getPosition();
+    const vec3f bodypos = vehicle[i]->getPosition();
     const bool offroad_now = !terrain->getRmapOnRoad(bodypos);
 
     //
@@ -463,7 +467,7 @@ void TriggerGame::tick(float delta)
     if (diff.lengthsq() < 30.0f * 30.0f) {
       //vehicle[i]->nextcp = (vehicle[i]->nextcp + 1) % checkpt.size();
         lastCkptPos = checkpt[vehicle[i]->nextcp].pt + vec3f(0.0f, 0.0f, 2.0f);
-        lastCkptOri = vehicle[i]->body->getOrientation();
+        lastCkptOri = vehicle[i]->getOrientation();
         cptime = coursetime;
       if (++vehicle[i]->nextcp >= (int)checkpt.size()) {
         vehicle[i]->nextcp = 0;
@@ -476,14 +480,14 @@ void TriggerGame::tick(float delta)
     {
         if (cdcheckpt_ordered)
         {
-            diff = makevec2f(codrivercheckpt[vehicle[i]->nextcdcp].pt) - makevec2f(vehicle[i]->body->getPosition());
+            diff = makevec2f(codrivercheckpt[vehicle[i]->nextcdcp].pt) - makevec2f(vehicle[i]->getPosition());
 
             if (diff.lengthsq() < 20.0f * 20.0f)
             {
                 cdvoice.say(codrivercheckpt[vehicle[i]->nextcdcp].notes);
                 cdsigns.set(codrivercheckpt[vehicle[i]->nextcdcp].notes, coursetime);
                 lastCkptPos = codrivercheckpt[vehicle[i]->nextcdcp].pt + vec3f(0.0f, 0.0f, 2.0f);
-                lastCkptOri = vehicle[i]->body->getOrientation();
+                lastCkptOri = vehicle[i]->getOrientation();
 
                 if (++vehicle[i]->nextcdcp >= (int)codrivercheckpt.size())
                     vehicle[i]->nextcdcp = 0;
@@ -493,14 +497,14 @@ void TriggerGame::tick(float delta)
         {
             for (std::size_t j=0; j < codrivercheckpt.size(); ++j)
             {
-                diff = makevec2f(codrivercheckpt[j].pt) - makevec2f(vehicle[i]->body->getPosition());
+                diff = makevec2f(codrivercheckpt[j].pt) - makevec2f(vehicle[i]->getPosition());
 
                 if (diff.lengthsq() < 20.0f * 20.0f && static_cast<int> (j + 1) != vehicle[i]->nextcdcp)
                 {
                     cdvoice.say(codrivercheckpt[j].notes);
                     cdsigns.set(codrivercheckpt[j].notes, coursetime);
                     lastCkptPos = codrivercheckpt[j].pt + vec3f(0.0f, 0.0f, 2.0f);
-                    lastCkptOri = vehicle[i]->body->getOrientation();
+                    lastCkptOri = vehicle[i]->getOrientation();
                     vehicle[i]->nextcdcp = j + 1;
                     break;
                 }

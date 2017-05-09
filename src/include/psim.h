@@ -15,9 +15,7 @@
 #include <tnl/tnlNetObject.h>
 */
 
-
 class PSim;
-class   PRigidBody;
 
 class PMotor;
 class PGearbox;
@@ -27,7 +25,7 @@ class ClipNode;
 class ClipMesh;
 
 class PVehicleType;
-class   PVehicleTypePart;
+class PVehicleTypePart;
 class PVehicle;
 
 
@@ -40,13 +38,20 @@ public:
   mat44f ori_mat, ori_mat_inv;
 
 public:
-  PReferenceFrame() : pos(vec3f::zero()), ori(quatf::identity()) {
+  PReferenceFrame() : pos(vec3f::zero()), ori(QUATERNION_IDENTITY) {
     updateMatrices();
   }
 
   void updateMatrices() {
     ori.normalize();
-    ori_mat = ori.getMatrix();
+    btTransform trans(ori);
+    btScalar mat[16];
+    trans.getOpenGLMatrix(mat);
+    /* Note: as it will be only an orientation matrix, ignoring representation
+     * of the position. */
+    ori_mat.assemble(vec3f(mat[0], mat[4], mat[8]),
+                     vec3f(mat[1], mat[5], mat[9]), 
+                     vec3f(mat[2], mat[6], mat[10]));
     ori_mat_inv = ori_mat.transpose();
   }
 
@@ -72,62 +77,7 @@ public:
   }
 };
 
-
-class PRigidBody : public PReferenceFrame {
-private:
-
-  PSim &sim;
-
-  // config
-  float mass, mass_inv;
-  vec3f angmass, angmass_inv; // inertial tensor approximation
-
-  // state
-  vec3f linvel;
-  vec3f angvel;
-
-  vec3f accum_force;
-  vec3f accum_torque;
-
-  // TODO: intelligent friction calc
-
-public:
-  PRigidBody(PSim &sim_parent);
-  ~PRigidBody();
-
-public:
-  void setMassCuboid(float _mass, const vec3f &dim);
-
-  void setLinearVel(const vec3f &vel) { linvel = vel; }
-  const vec3f &getLinearVel() { return linvel; }
-
-  void setAngularVel(const vec3f &vel) { angvel = vel; }
-  const vec3f &getAngularVel() { return angvel; }
-
-  void addForce(const vec3f &frc);
-  void addLocForce(const vec3f &frc);
-  void addForceAtPoint(const vec3f &frc, const vec3f &pt);
-  void addLocForceAtPoint(const vec3f &frc, const vec3f &pt);
-  void addForceAtLocPoint(const vec3f &frc, const vec3f &pt);
-  void addLocForceAtLocPoint(const vec3f &frc, const vec3f &pt);
-
-  void addTorque(const vec3f &trq);
-  void addLocTorque(const vec3f &trq);
-
-  vec3f getLinearVelAtPoint(const vec3f &pt);
-  vec3f getLinearVelAtLocPoint(const vec3f &pt);
-
-  void tick(float delta);
-
-  friend class PSim;
-};
-
-
-
-
 #include "vehicle.h"
-
-
 
 class PSim {
 private:
@@ -135,8 +85,6 @@ private:
   PTerrain *terrain;
 
   PResourceList<PVehicleType> vtypelist;
-
-  std::vector<PRigidBody *> body;
 
   std::vector<PVehicle *> vehicle;
 
@@ -152,8 +100,6 @@ public:
   void setGravity(const vec3f &_gravity) { gravity = _gravity; }
 
   PVehicleType *loadVehicleType(const std::string &filename, PSSModel &ssModel);
-
-  PRigidBody *createRigidBody();
 
   PVehicle *createVehicle(XMLElement *element, const std::string &filepath, PSSModel &ssModel);
   PVehicle *createVehicle(const std::string &type, const vec3f &pos, const quatf &ori, const std::string &filepath, PSSModel &ssModel);

@@ -790,13 +790,18 @@ void MainApp::renderStateGame(float eyetranslation)
 
     glPushMatrix(); // 0
 
-    mat44f cammat = camori.getMatrix();
-    mat44f cammat_inv = cammat.transpose();
+    PReferenceFrame camera;
+    camera.setOrientation(camori);
+    camera.updateMatrices();
+
+    mat44f cammat = camera.getOrientationMatrix();
+    mat44f cammat_inv = camera.getInverseOrientationMatrix();
 
     //glTranslatef(0.0,0.0,-40.0);
     glTranslatef(-eyetranslation, 0.0f, 0.0f);
 
-    glMultMatrixf(cammat);
+    //FIXME: broken camera rotation
+    //glMultMatrixf(cammat);
 
     glTranslatef(-campos.x, -campos.y, -campos.z);
 
@@ -809,7 +814,7 @@ void MainApp::renderStateGame(float eyetranslation)
 
 #if RENDER_DEBUG_BULLET
     BulletLink::debugDraw();
-#else
+#endif
 
     glActiveTextureARB(GL_TEXTURE1_ARB);
     glEnable(GL_TEXTURE_2D);
@@ -837,6 +842,7 @@ void MainApp::renderStateGame(float eyetranslation)
     glDisable(GL_TEXTURE_2D);
     glActiveTextureARB(GL_TEXTURE0_ARB);
 
+    /* Render car's 'shadows' */
     if (renderowncar)
     {
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -845,8 +851,9 @@ void MainApp::renderStateGame(float eyetranslation)
 
         glColor4f(1.0f, 1.0f, 1.0f, 0.7f);
 
-        vec3f vpos = game->vehicle[0]->body->pos;
-        vec3f forw = makevec3f(game->vehicle[0]->body->getOrientationMatrix().row[0]);
+        vec3f vpos = game->vehicle[0]->getPosition();
+        vec3f forw = makevec3f(
+          game->vehicle[0]->getReferenceFrame().getOrientationMatrix().row[0]);
         float forwangle = atan2(forw.y, forw.x);
         game->terrain->drawSplat(vpos.x, vpos.y, 1.4f, forwangle + PI*0.5f);
 
@@ -1394,7 +1401,7 @@ void MainApp::renderStateGame(float eyetranslation)
         for (unsigned int i=0; i<game->vehicle.size(); i++)
         {
             glPushMatrix();
-            vec3f vpos = game->vehicle[i]->body->getPosition();
+            vec3f vpos = game->vehicle[i]->getPosition();
             glTranslatef(vpos.x, vpos.y, 0.0f);
             glRotatef(DEGREES(camera_angle), 0.0f, 0.0f, 1.0f);
             glScalef(30.0f, 30.0f, 1.0f);
@@ -1645,7 +1652,7 @@ void MainApp::renderStateGame(float eyetranslation)
     if (game->isRacing())
     {
         //const vec3f bodypos = vehic->part[0].ref_world.getPosition();
-        const vec3f bodypos = vehic->body->getPosition();
+        const vec3f bodypos = vehic->getPosition();
 
         if (!game->terrain->getRmapOnRoad(bodypos))
         {
@@ -1829,7 +1836,6 @@ void MainApp::renderStateGame(float eyetranslation)
       glPopMatrix(); // 1
 
     }
-#endif
     glPopMatrix(); // 0
 
     glMatrixMode(GL_PROJECTION);

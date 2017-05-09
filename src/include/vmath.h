@@ -6,7 +6,8 @@
 
 
 #include <math.h>
-
+#include <LinearMath/btQuaternion.h>
+#include <LinearMath/btVector3.h>
 
 #define PI 3.1415926535897932384626433832795
 
@@ -430,154 +431,8 @@ public:
   }
 };
 
-
-template <class T>
-class quat {
-public:
-  T x,y,z,w;
-
-public:
-  quat() { }
-  quat(T _x, T _y, T _z, T _w) : x(_x), y(_y), z(_z), w(_w) { }
-
-  quat<T> operator + (const quat<T> &q) const {
-    return quat<T>(x+q.x, y+q.y, z+q.z, w+q.w);
-  }
-  quat<T> operator - (const quat<T> &q) const {
-    return quat<T>(x-q.x, y-q.y, z-q.z, w-q.w);
-  }
-  quat<T> operator * (T val) const {
-    return quat<T>(x*val, y*val, z*val, w*val);
-  }
-  quat<T> operator / (T val) const {
-    T mult = (T)1 / val;
-    return quat<T>(x*mult, y*mult, z*mult, w*mult);
-  }
-
-  quat<T> operator * (const quat<T> &q) const {
-    return quat<T>(
-      w*q.x + x*q.w + y*q.z - z*q.y,
-      w*q.y - x*q.z + y*q.w + z*q.x,
-      w*q.z + x*q.y - y*q.x + z*q.w,
-      w*q.w - x*q.x - y*q.y - z*q.z);
-  }
-
-  quat<T> &operator += (const quat<T> &q) {
-    *this = *this + q;
-    return *this;
-  }
-  // operator *= has to assume an order
-  // since quaternion mult is not commutative, it's
-  // better to force the user to think about it
-  
-  float dot(const quat<T> &q) {
-    return (x * q.x + y * q.y + z * q.z + w * q.w);
-  }
-
-  void fromAxisAngle(const vec3<T> &axis, T angle) {
-    T len = axis.length();
-    if (len > (T)0) {
-      T sinA = sin(angle/(T)2) / len;
-      x = sinA * axis.x;
-      y = sinA * axis.y;
-      z = sinA * axis.z;
-      w = cos(angle/(T)2);
-    } else {
-      *this = identity();
-    }
-  }
-  void fromXAngle(T angle) {
-    x = sin(angle/(T)2);
-    y = z = (T)0;
-    w = cos(angle/(T)2);
-  }
-  void fromYAngle(T angle) {
-    y = sin(angle/(T)2);
-    x = z = (T)0;
-    w = cos(angle/(T)2);
-  }
-  void fromZAngle(T angle) {
-    z = sin(angle/(T)2);
-    x = y = (T)0;
-    w = cos(angle/(T)2);
-  }
-  void fromThreeAxisAngle(const vec3<T> &vec) {
-    quat<T> temp;
-    fromXAngle(vec.x);
-    temp.fromYAngle(vec.y);
-    *this = *this * temp;
-    temp.fromZAngle(vec.z);
-    *this = *this * temp;
-  }
-
-  void normalize() {
-    T len = x*x + y*y + z*z + w*w;
-    if (len > (T)0) {
-      len = (T)1 / (T)sqrt(len);
-      x *= len;
-      y *= len;
-      z *= len;
-      w *= len;
-    } else {
-      *this = identity();
-    }
-  }
-
-  mat44<T> getMatrix() const {
-    T   norm = x*x + y*y + z*z + w*w,
-      s = (norm > (T)0) ? (T)2/norm : (T)0,
-
-      xx = x * x * s,
-      yy = y * y * s,
-      zz = z * z * s,
-      xy = x * y * s,
-      xz = x * z * s,
-      yz = y * z * s,
-      wx = w * x * s,
-      wy = w * y * s,
-      wz = w * z * s;
-
-    mat44<T> m;
-    m.assemble(
-      vec3<T>((T)1 - (yy + zz), xy + wz, xz - wy),
-      vec3<T>(xy - wz, (T)1 - (xx + zz), yz + wx),
-      vec3<T>(xz + wy, yz - wx, (T)1 - (xx + yy)));
-
-    return m;
-/*
-    m.el[0] = (T)1 - (yy + zz);
-    m.el[4] = xy + wz;
-    m.el[8] = xz - wy;
-
-    m.el[1] = xy - wz;
-    m.el[5] = (T)1 - (xx + zz);
-    m.el[9] = yz + wx;
-
-    m.el[2] = xz + wy;
-    m.el[6] = yz - wx;
-    m.el[10] = (T)1 - (xx + yy);
-
-    m.el[12] = m.el[13] = m.el[14] = m.el[3] = m.el[7] = m.el[11] = (T)0;
-    m.el[15] = (T)1;
-*/
-  }
-
-  static quat<T> identity () { return quat<T>(0,0,0,1); }
-
-  static quat<T> rand() {
-    quat<T> ret;
-    float lengthsq;
-    do { ret=quat<T>((T)2 * (T)::rand() / (T)RAND_MAX - (T)1,
-            (T)2 * (T)::rand() / (T)RAND_MAX - (T)1,
-            (T)2 * (T)::rand() / (T)RAND_MAX - (T)1,
-            (T)2 * (T)::rand() / (T)RAND_MAX - (T)1);
-      lengthsq = ret.x*ret.x + ret.y*ret.y + ret.z*ret.z + ret.w*ret.w;
-    } while (lengthsq > (T)1 || lengthsq <= (T)0);
-    float mult = (T)1 / (T)sqrt(lengthsq);
-    ret.x *= mult; ret.y *= mult; ret.z *= mult; ret.w *= mult;
-    return ret;
-  }
-};
+typedef btQuaternion quatf;
+#define QUATERNION_IDENTITY quatf(0.0f, 0.0f, 0.0f, 1.0f)
 
 template<class T>
 class frustum {
@@ -627,8 +482,10 @@ typedef vec4<double> vec4d;
 typedef vec4<int> vec4i;
 typedef vec4<unsigned char> vec4ub;
 
+#if 0
 typedef quat<float> quatf;
 typedef quat<double> quatd;
+#endif
 
 typedef ray<float> rayf;
 typedef ray<double> rayd;

@@ -5,7 +5,7 @@
 // License: GPL version 2 (see included gpl.txt)
 
 #include "psim.h"
-
+#include "bulletlink.h"
 
 
 // PDriveSystem and PDriveSystemInstance //
@@ -346,10 +346,14 @@ bool PVehicleType::load(const std::string &filename, PSSModel &ssModel)
       
       val = walk->Attribute("ori");
       if (val) {
-        quatf ori;
+
         // note: w first, as per usual mathematical notation
-        if (sscanf(val, "%f , %f , %f , %f", &ori.w, &ori.x, &ori.y, &ori.z) == 3)
+        float w, x, y, z;
+        if (sscanf(val, "%f , %f , %f , %f", &w, &x, &y, &z) == 4) {
+
+          quatf ori(x, y, z, w);
           vtp->ref_local.setOrientation(ori);
+        }
       }
 
       val = walk->Attribute("scale");
@@ -457,9 +461,12 @@ bool PVehicleType::load(const std::string &filename, PSSModel &ssModel)
 
           val = walk2->Attribute("ori");
           if (val) {
-            quatf ori;
-            if (sscanf(val, "%f , %f , %f , %f", &ori.w, &ori.x, &ori.y, &ori.z) == 4)
+
+            float w, x, y, z;
+            if (sscanf(val, "%f , %f , %f , %f", &w, &x, &y, &z) == 4) {
+              quatf ori(x, y, z, w);
               vtp->flame.back().setOrientation(ori);
+            }
           }
         }
       }
@@ -492,7 +499,9 @@ bool PVehicleType::load(const std::string &filename, PSSModel &ssModel)
   
   if (wheel_speed_multiplier > 0.0f)
     wheel_speed_multiplier = 1.0f / wheel_speed_multiplier;
-  
+ 
+  /* FIXME: use real vehicle values */
+
   return true;
 }
 
@@ -507,13 +516,43 @@ void PVehicleType::unload()
 
 //TNL_IMPLEMENT_NETOBJECT(PVehicle); 
 
-PVehicle::PVehicle(PSim &sim_parent, PVehicleType *_type) :
-  sim(sim_parent), type(_type), dsysi(&_type->dsys)
+PVehicle::~PVehicle()
 {
+   /* Remove our vehicle */
+  if(vehicle) {
+    BulletLink::removeVehicle(vehicle);
+    delete vehicle;
+    delete vehicleRayCaster;
+  }
+
+  /* Remove our rigid bodies */
+  if(chassisRigidBody) {
+    BulletLink::removeRigidBody(chassisRigidBody);
+    delete chassisRigidBody;
+  }
+
+  /* Remove our collision shapes */
+  for(int i = 0; i < collisionShapes.size(); i++) {
+    btCollisionShape* shape = collisionShapes[i];
+    delete shape;
+  }
+  collisionShapes.clear();
+
+  /* Remove our motion states */
+  if(chassisMotionState) {
+    delete chassisMotionState;
+  }
+}
+
+PVehicle::PVehicle(PSim &sim_parent, PVehicleType *_type) :
+  sim(sim_parent), type(_type), dsysi(&_type->dsys), vehicle(NULL),
+  vehicleRayCaster(NULL), chassisRigidBody(NULL), chassisMotionState(NULL)
+{
+#if 0
   body = sim.createRigidBody();
   
   body->setMassCuboid(type->mass, type->dims);
-  
+#endif  
   state.setZero();
   ctrl.setZero();
   
@@ -526,11 +565,12 @@ PVehicle::PVehicle(PSim &sim_parent, PVehicleType *_type) :
   currentlap = 1;
   
   wheel_angvel = 0.0f;
-  
+
+#if 0
   reset_trigger_time = 0.0f;
-  
+
   reset_time = 0.0f;
-  
+#endif  
   crunch_level = 0.0f;
   crunch_level_prev = 0.0f;
   
@@ -546,12 +586,141 @@ PVehicle::PVehicle(PSim &sim_parent, PVehicleType *_type) :
   }
   
   updateParts();
+
+  createBulletVehicle();
   
   //mNetFlags.set(Ghostable);
 }
 
+void PVehicle::createBulletVehicle()
+{
+  //TODO: get vehicle halfExtends from its model
+  btVector3 halfExtends(1, 2, btScalar(0.5));
+
+  btCollisionShape* chassisShape = new btBoxShape(halfExtends);
+  collisionShapes.push_back(chassisShape);
+
+  /* A compound shape is used so we can easily shift the center of gravity 
+   * of our vehicle to its bottom.
+   * This is needed to make our vehicle more stable. */
+  //TODO: Test the vehicle without it
+  btCompoundShape* compound = new btCompoundShape();
+  collisionShapes.push_back(compound);
+
+  /* The center of gravity of the compound shape is the origin. When we add a
+   * rigidbody to the compound shape it's center of gravity does not change.
+   * This way we can add the chassis rigidbody one unit above our center of
+   * gravity keeping it under our chassis, and not in the middle of it */
+  btTransform localTransform;
+  localTransform.setIdentity();
+  localTransform.setOrigin(btVector3(0, 0, 1));
+  compound->addChildShape(localTransform, chassisShape);
+
+  createChassisRigidBodyFromShape(compound);
+
+  /* Let's create the raycast vehicle */
+  vehicleRayCaster = BulletLink::createVehicleRaycaster();
+  btRaycastVehicle::btVehicleTuning tuning;
+  vehicle = new btRaycastVehicle(tuning, chassisRigidBody, vehicleRayCaster);
+
+  /* Never deactivate the vehicle */
+  chassisRigidBody->setActivationState(DISABLE_DEACTIVATION);
+
+  /* Add the vehicle to the world */
+  BulletLink::addVehicle(vehicle);
+
+  /* Finally, add its wheels */
+  addWheels(&halfExtends, tuning);
+}
+
+
+void PVehicle::createChassisRigidBodyFromShape(btCollisionShape* chassisShape)
+{
+  btTransform chassisTransform;
+  chassisTransform.setIdentity();
+  chassisTransform.setOrigin(btVector3(0, 0, 1));
+
+  //FIXME: use real car values for mass
+  btScalar mass(1200);
+
+  /* Calculate its local inertia */
+  btVector3 localInertia(0, 0, 0);
+  chassisShape->calculateLocalInertia(mass, localInertia);
+
+  /* Create our chassis motion state */
+  chassisMotionState = new btDefaultMotionState(chassisTransform);
+
+  /* Finally, the chassis rigid body */
+  btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, chassisMotionState, 
+        chassisShape, localInertia);
+  chassisRigidBody = new btRigidBody(rbInfo); 
+  BulletLink::addRigidBody(chassisRigidBody);
+}
+
+void PVehicle::addWheels(btVector3* halfExtents,
+      btRaycastVehicle::btVehicleTuning tuning)
+{
+  //TODO: use vehicle's values from file.
+
+  /* The direction of the raycast, the btRaycastVehicle uses raycasts instead
+   * of simulating the wheels with rigid bodies */
+  btVector3 wheelDirectionCS0(0, 0, -1);
+
+  /* The axis which the wheel rotates arround */
+  btVector3 wheelAxleCS(-1, 0, 0);
+
+  btScalar suspensionRestLength(0.7);
+
+  btScalar wheelWidth(0.4);
+
+  btScalar wheelRadius(0.5);
+
+  /* The height where the wheels are connected to the chassis */
+  btScalar connectionHeight(1.2);
+
+  /* All the wheel configuration assumes the vehicle is centered at the 
+   * origin and a right handed coordinate system is used */
+  btVector3 wheelConnectionPoint(halfExtents->x() - wheelRadius, 
+        halfExtents->y() - wheelWidth,  connectionHeight);
+
+  /* Adds the front wheels */
+  vehicle->addWheel(wheelConnectionPoint, wheelDirectionCS0, wheelAxleCS, 
+        suspensionRestLength, wheelRadius, tuning, true);
+
+  vehicle->addWheel(wheelConnectionPoint * btVector3(-1, 1, 1), 
+        wheelDirectionCS0, wheelAxleCS, suspensionRestLength, wheelRadius,
+        tuning, true);
+
+  /* Adds the rear wheels */
+  vehicle->addWheel(wheelConnectionPoint* btVector3(1, -1, 1),
+        wheelDirectionCS0, wheelAxleCS, suspensionRestLength, wheelRadius,
+        tuning, false);
+
+  vehicle->addWheel(wheelConnectionPoint * btVector3(-1, -1, 1), 
+        wheelDirectionCS0, wheelAxleCS, suspensionRestLength, wheelRadius,
+        tuning, false); 
+
+  /* Configures each wheel of our vehicle, setting its friction, damping
+   * compression, etc. */
+  for(int i = 0; i < vehicle->getNumWheels(); i++)
+  {
+    btWheelInfo& wheel = vehicle->getWheelInfo(i);
+    wheel.m_suspensionStiffness = 50;
+    wheel.m_wheelsDampingCompression = btScalar(0.3) * 2 * 
+       btSqrt(wheel.m_suspensionStiffness);//btScalar(0.8);
+    wheel.m_wheelsDampingRelaxation = btScalar(0.5) * 2 * 
+       btSqrt(wheel.m_suspensionStiffness);//1;
+
+    /* Larger friction slips will result in better handling */
+    wheel.m_frictionSlip = btScalar(1.2);
+    wheel.m_rollInfluence = 1;
+  }
+}
+
+
 void PVehicle::doReset()
 {
+#if 0
   if (reset_time != 0.0f) return;
   
   reset_pos = body->pos + vec3f(0.0f, 0.0f, 2.0f);
@@ -581,8 +750,8 @@ void PVehicle::doReset()
       part[i].wheel[j].skidding = 0.0f;
       part[i].wheel[j].dirtthrow = 0.0f;
     }
-  }
-  
+  }  
+#endif
   forwardspeed = 0.0f;
   wheel_angvel = 0.0f;
   wheel_speed = 0.0f;
@@ -590,10 +759,12 @@ void PVehicle::doReset()
   dsysi.doReset();
   
   state.setZero();
+
 }
 
 void PVehicle::doReset2(const vec3f &pos, const quatf &ori)
 {
+#if 0
   if (reset_time != 0.0f) return;
 
   reset_pos = pos;
@@ -620,6 +791,7 @@ void PVehicle::doReset2(const vec3f &pos, const quatf &ori)
       part[i].wheel[j].dirtthrow = 0.0f;
     }
   }
+#endif
 
   forwardspeed = 0.0f;
   wheel_angvel = 0.0f;
@@ -628,10 +800,39 @@ void PVehicle::doReset2(const vec3f &pos, const quatf &ori)
   dsysi.doReset();
 
   state.setZero();
+
+  /* Reset bullet vehicle rigid body position and orientation */
+  setPositionAndOrientation(pos, ori);
+}
+
+void PVehicle::setPositionAndOrientation(const vec3f& pos, const quatf& ori)
+{
+  /* Update our current 'cached' values  */
+  curReference.pos = pos;
+  curReference.ori = ori;
+  curReference.updateMatrices();
+
+  /* Define bullet physics objects */
+  btRigidBody* rigidBody = vehicle->getRigidBody();
+  rigidBody->clearForces();
+  btTransform transform = rigidBody->getCenterOfMassTransform();
+  transform.setOrigin(btVector3(pos.x,pos.y,pos.z));
+  transform.setRotation(ori);
+  rigidBody->setCenterOfMassTransform(transform);
 }
 
 void PVehicle::tick(float delta)
 {
+  /* Retrieve current position and orientation from bullet */
+  btVector3 vPos(vehicle->getRigidBody()->getCenterOfMassPosition());
+  curReference.pos = vec3f(vPos[0], vPos[1], vPos[2]);
+  
+  btQuaternion vOri(
+        vehicle->getRigidBody()->getCenterOfMassTransform().getRotation());
+
+  curReference.ori = quatf(vOri[0], vOri[1], vOri[2], vOri[3]);
+  curReference.updateMatrices();
+
   // ensure control values are in valid range
   ctrl.clamp();
   
@@ -650,6 +851,7 @@ void PVehicle::tick(float delta)
   //PULLTOWARD(state.aim.y, ctrl.aim.y, type->ctrlrate.aim.y * delta);
   PULLTOWARD(state.collective, ctrl.collective, type->ctrlrate.collective * delta);
   
+#if 0
   // prepare some useful data
   //vec3f pos = body->getPosition();
   vec3f linvel = body->getLinearVel();
@@ -723,80 +925,32 @@ void PVehicle::tick(float delta)
     0.0,
     loclinvel.z * type->param.lift.y * loclinvel.y);
 
-  // VEHICLE TYPE POINT
-
-  // vehicle-specific code
-  switch (type->coretype) {
-  default: break;
-
-  case VCTYPE_TANK:
-    if (part.size() >= 3) {
-      state.aim.x += ctrl.aim.x * delta * 0.5;
-      if (state.aim.x < -PI) state.aim.x += 2.0*PI;
-      if (state.aim.x >= PI) state.aim.x -= 2.0*PI;
-      state.aim.y += ctrl.aim.y * delta * 0.5;
-      CLAMP(state.aim.y, 0.0, 0.5);
-
-      part[1].ref_local.ori.fromThreeAxisAngle(
-        vec3f(0.0,0.0,-state.aim.x));
-
-      part[2].ref_local.ori.fromThreeAxisAngle(
-        vec3f(-state.aim.y,0.0,0.0));
-
-      part[1].ref_local.updateMatrices();
-      part[2].ref_local.updateMatrices();
-    }
-    break;
-
-  case VCTYPE_HELICOPTER:
-    break;
-
-  case VCTYPE_PLANE:
-    {
-      frc.y += state.throttle * type->param.speed;
-    }
-    break;
-
-  case VCTYPE_HOVERCRAFT:
-    {
-      blade_ang1 = fmod(blade_ang1 + delta * 50.0 * state.throttle, 2.0*PI);
-
-      if (part.size() >= 4) {
-        state.aim.x += ctrl.aim.x * delta * 0.5;
-        if (state.aim.x < -PI) state.aim.x += 2.0*PI;
-        if (state.aim.x >= PI) state.aim.x -= 2.0*PI;
-        state.aim.y += ctrl.aim.y * delta * 0.5;
-        CLAMP(state.aim.y, 0.0, 0.5);
-
-        part[1].ref_local.ori.fromThreeAxisAngle(vec3f(0.0, blade_ang1, 0.0));
-
-        part[2].ref_local.ori.fromThreeAxisAngle(vec3f(0.0, 0.0, state.turn.z * -0.5));
-
-        part[1].ref_local.updateMatrices();
-        part[2].ref_local.updateMatrices();
-      }
-
-      frc.y += state.throttle * type->param.speed;
-    }
-    break;
-  
-  case VCTYPE_CAR:
-    break;
-  }
 
   body->addLocForce(frc);
 
   vec3f forwarddir = makevec3f(body->getInverseOrientationMatrix().row[1]);
   //vec3f rightdir = makevec3f(body->getInverseOrientationMatrix().row[0]);
-  
+#endif  
   dsysi.tick(delta, state.throttle, wheel_angvel);
   
   float drivetorque = dsysi.getOutputTorque();
   //float drivetorque = 0.0f;
   
   float turnfactor = state.turn.z;// /
+
+  /* Applying engine force on rear wheels. */
+  //TODO: Vehicle should be configurable on which wheels receive 
+  //engine traction
+  vehicle->applyEngineForce(-1*drivetorque*10, 2);
+  vehicle->applyEngineForce(-1*drivetorque*10, 3);
+
+  /* Apply turn factor to front wheels */
+  vehicle->setSteeringValue(turnfactor, 0);
+  vehicle->setSteeringValue(turnfactor, 1);
+
+
     //(1.0f + fabsf(wheel_angvel) / 70.0f);
-  
+#if 0
   wheel_angvel = 0.0f;
   
   wheel_speed = 0.0f;
@@ -1088,6 +1242,7 @@ void PVehicle::tick(float delta)
   wheel_speed *= type->wheel_speed_multiplier;
   
   skid_level *= type->wheel_speed_multiplier;
+#endif
 }
 
 ///
@@ -1127,12 +1282,13 @@ bool PVehicle::canHaveDustTrail()
 
 void PVehicle::updateParts()
 {
+  //TODO: use values from bullet (specially for wheels).
   for (unsigned int i=0; i<part.size(); ++i) {
     PReferenceFrame *parent;
     if (type->part[i].parent > -1)
       parent = &part[type->part[i].parent].ref_world;
     else
-      parent = body;
+      parent = &curReference;
 
     part[i].ref_world.ori = part[i].ref_local.ori * parent->ori;
 
@@ -1147,9 +1303,8 @@ void PVehicle::updateParts()
       
       part[i].wheel[j].ref_world.setPosition(part[i].ref_world.getLocToWorldPoint(locpos));
       
-      quatf turnang, spinang;
-      turnang.fromZAngle(part[i].wheel[j].turn_pos);
-      spinang.fromXAngle(part[i].wheel[j].spin_pos);
+      quatf turnang(0.0f, 0.0f, part[i].wheel[j].turn_pos);
+      quatf spinang(part[i].wheel[j].spin_pos, 0.0f, 0.0f);
       
       part[i].wheel[j].ref_world.ori = spinang * turnang * part[i].ref_world.ori;
       

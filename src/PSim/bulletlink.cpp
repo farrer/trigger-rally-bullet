@@ -70,6 +70,27 @@ void BulletLink::removeRigidBody(btRigidBody* rigidBody) {
 }
 
 /***********************************************************************
+ *                           addVehicle                                *
+ ***********************************************************************/
+void BulletLink::addVehicle(btRaycastVehicle* vehicle) {
+  dynamicsWorld->addVehicle(vehicle);
+}
+
+/***********************************************************************
+ *                         removeVehicle                               *
+ ***********************************************************************/
+void BulletLink::removeVehicle(btRaycastVehicle* vehicle) {
+  dynamicsWorld->removeVehicle(vehicle);
+}
+
+/***********************************************************************
+ *                     createVehicleRaycaster                          *
+ ***********************************************************************/
+btVehicleRaycaster* BulletLink::createVehicleRaycaster() {
+  return new btDefaultVehicleRaycaster(dynamicsWorld);
+}
+
+/***********************************************************************
  *                              step                                   *
  ***********************************************************************/
 void BulletLink::step(btScalar timeStep, int maxSubSteps) {

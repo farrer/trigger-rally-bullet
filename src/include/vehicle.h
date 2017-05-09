@@ -4,7 +4,7 @@
 // Copyright 2004-2006 Jasmine Langridge, jas@jareiko.net
 // License: GPL version 2 (see included gpl.txt)
 
-
+#include <btBulletDynamicsCommon.h>
 
 // vehicle core types
 
@@ -325,9 +325,10 @@ public:
   PSim &sim;
   
   PVehicleType *type;
-  
+
+#if 0
   PRigidBody *body;
-  
+#endif
   std::vector<PVehiclePart> part;
   
   v_state_s state;
@@ -340,12 +341,14 @@ public:
   int nextcp;
   int nextcdcp; ///< Next codriver checkpoint.
   int currentlap; ///< Current lap, counted from 1.
-  
+
+#if 0
   // for vehicle resetting, after being flipped
   float reset_trigger_time;
   vec3f reset_pos;
   quatf reset_ori;
   float reset_time;
+#endif
   
   // for body crash/impact noises
   float crunch_level, crunch_level_prev;
@@ -369,11 +372,23 @@ public:
 */
 public:
   PVehicle(PSim &sim_parent, PVehicleType *_type);
-  //~PVehicle() { unload(); } // body unloaded by sim
-  
+  ~PVehicle();
+
+  /*! Force set current vehicle position and orientation
+   * \param ps vector with new position
+   * \param ori quaternion with new rotation */
+  void setPositionAndOrientation(const vec3f& pos, const quatf& ori);
+
+  /*! \return vector with current vehicle position */
+  const vec3f& getPosition() const { return curReference.pos;};
+
+  /*! \return quaternion with current vehicle rotations */
+  const quatf& getOrientation() const { return curReference.ori; };
+
+  /*! \return current reference frame */
+  PReferenceFrame getReferenceFrame() { return curReference; };
+
 public:
-  PRigidBody &getBody() { return *body; }
-  
   /*
   // NetObject stuff
   void performScopeQuery(GhostConnection *connection);
@@ -405,4 +420,36 @@ public:
   }
   float getWheelSpeed() { return wheel_speed; }
   float getSkidLevel() { return skid_level; }
+
+private:
+  /* note: bullet physics for vehicle in Trigger was based on Bullet's
+   * CarHandlingDemo as a starting point. */
+
+  /*! Create the vehicle implementation for Bullet Physics integration */
+  void createBulletVehicle();
+
+  /*! Create the rigid body for the chassis.
+   * \param the chassis shape (in fact, the compound used as center of gravity
+   *        for better vehicle handle). */
+  void createChassisRigidBodyFromShape(btCollisionShape* chassisShape);
+
+  /*! Add the wheels to bullet's vehicle.
+   * \param halfExtends chassis' half sizes
+   * \param tuning the vehicle tuning used */
+  void addWheels(btVector3* halfExtents,
+        btRaycastVehicle::btVehicleTuning tuning);
+
+  
+  btRaycastVehicle* vehicle; /**< The bullet vehicle approximation */
+  btVehicleRaycaster* vehicleRayCaster; /**< Raycaster used */
+  btRigidBody* chassisRigidBody; /**< Rigid body for vehicle's chassis */
+  /*! Collision shapes of the vehicle (ie: chassis, wheels) */
+  btAlignedObjectArray<btCollisionShape*> collisionShapes;
+  btDefaultMotionState* chassisMotionState; /**< Motion state for chassis */
+
+  /*! Current position and orientation. Note: kept at a PReferenceFrame
+   * for compatibility with the way it was implemented for camera retrieve
+   * informations about vehicle. */
+  PReferenceFrame curReference;
+
 };

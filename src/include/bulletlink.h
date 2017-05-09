@@ -10,7 +10,7 @@
 #include <btBulletDynamicsCommon.h>
 #include "bulletdebugdraw.h"
 
-#define TRIGGER_BULLET_FREQUENCY (1.0f / 240.0f)
+#define TRIGGER_BULLET_FREQUENCY (1.0f / 60.0f)
 
 /*! Class that make the link with bullet, initing it, setting the world, 
  * receiveing callback, etc.
@@ -34,6 +34,17 @@ class BulletLink
       /*! Remove rigid body from the world
        * \param rigidBody -> pointer to the rigid body to remove */
       static void removeRigidBody(btRigidBody* rigidBody);
+
+      /*! Add a vehicle to the world
+       * \param vehicle pointer of the vehicle to add */
+      static void addVehicle(btRaycastVehicle* vehicle);
+
+      /*! Remove a vehicle from the world
+       * \param vehicle pointer to the vehicle to remove */
+      static void removeVehicle(btRaycastVehicle* vehicle);
+
+      /*! \return pointer to a new default vehicle raycaster */
+      static btVehicleRaycaster* createVehicleRaycaster();
 
       /*! Do the draw of current physics for debug. */
       static void debugDraw();

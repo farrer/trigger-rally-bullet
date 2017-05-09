@@ -1228,7 +1228,7 @@ bool MainApp::loadAll()
   
   campos = campos_prev = vec3f(-15.0,0.0,30.0);
   //camori.fromThreeAxisAngle(vec3f(-1.0,0.0,1.5));
-  camori = quatf::identity();
+  camori = QUATERNION_IDENTITY;
   
   camvel = vec3f::zero();
   
@@ -1618,10 +1618,11 @@ void MainApp::tickStateGame(float delta)
     }
   }
   
+#if 0
   // Computer aided steering
   if (vehic->forwardspeed > 1.0f)
     vehic->ctrl.turn.z -= vehic->body->getAngularVel().z * cfg_drivingassist / (1.0f + vehic->forwardspeed);
-  
+#endif  
   
   float throttletarget = 0.0f;
   float braketarget = 0.0f;
@@ -1658,7 +1659,7 @@ void MainApp::tickStateGame(float delta)
   for (unsigned int i=0; i<game->vehicle.size(); i++) {
     for (unsigned int j=0; j<game->vehicle[i]->part.size(); j++) {
       //const vec3f bodydirtpos = game->vehicle[i]->part[j].ref_world.getPosition();
-      const vec3f bodydirtpos = game->vehicle[i]->body->getPosition();
+      const vec3f bodydirtpos = game->vehicle[i]->getPosition();
       const dirtinfo bdi = PUtil::getDirtInfo(game->terrain->getRoadSurface(bodydirtpos));
 
     if (bdi.startsize >= 0.30f && game->vehicle[i]->forwardspeed > 23.0f)
@@ -1729,9 +1730,9 @@ void MainApp::tickStateGame(float delta)
     cameraview_mod = 0;
     static float spinner = 0.0f;
     spinner += 1.4f * delta;
-    tempo.fromThreeAxisAngle(vec3f(-PI*0.5f,0.0f,spinner));
+    tempo = quatf(-PI*0.5f,0.0f,spinner);
   } else {
-    tempo.fromThreeAxisAngle(vec3f(-PI*0.5f,0.0f,0.0f));
+    tempo = quatf(-PI*0.5f,0.0f,0.0f);
   }
   
   renderowncar = (cameraview_mod != 1);
@@ -1739,10 +1740,10 @@ void MainApp::tickStateGame(float delta)
   campos_prev = campos;
   
   //PReferenceFrame *rf = &vehic->part[2].ref_world;
-  PReferenceFrame *rf = &vehic->getBody();
+  PReferenceFrame rf = vehic->getReferenceFrame();
   
-  vec3f forw = makevec3f(rf->getOrientationMatrix().row[0]);
-  vec3f nose = makevec3f(rf->getOrientationMatrix().row[1]);
+  vec3f forw = makevec3f(rf.getOrientationMatrix().row[0]);
+  vec3f nose = makevec3f(rf.getOrientationMatrix().row[1]);
   float forwangle = atan2(forw.y, forw.x);
   float noseangle = atan2(nose.z, nose.y);
   
@@ -1752,8 +1753,7 @@ void MainApp::tickStateGame(float delta)
       // Chase
     default:   
   case 0: {
-    quatf temp2;
-    temp2.fromZAngle(forwangle + camera_user_angle);
+    quatf temp2(0.0f, 0.0f, forwangle + camera_user_angle);
     
     quatf target = tempo * temp2;
     
@@ -1762,21 +1762,28 @@ void MainApp::tickStateGame(float delta)
     PULLTOWARD(camori, target, delta * 3.0f);
     
     camori.normalize();
-    
-    cammat = camori.getMatrix();
-    cammat = cammat.transpose();
-    //campos = rf->getPosition() + makevec3f(cammat.row[2]) * 100.0;
-    campos = rf->getPosition() +
+   
+    PReferenceFrame camera;
+    camera.setOrientation(camori);
+    camera.updateMatrices();
+    cammat = camera.getOrientationMatrix();
+
+    //campos = rf.getPosition() + makevec3f(cammat.row[2]) * 100.0;
+#if 1
+    //FIXME: broken camera rotation!
+    campos = rf.getPosition() + vec3f(0.0f, 0.0f, 10.0f);
+#else
+    campos = rf.getPosition() +
       makevec3f(cammat.row[1]) * 1.6f +
       makevec3f(cammat.row[2]) * 5.0f;
+#endif
     } break;
     
     // Bumper
   case 1: {
-    quatf temp2;
-    temp2.fromZAngle(camera_user_angle);
+    quatf temp2(0.0f, 0.0f, camera_user_angle);
     
-    quatf target = tempo * temp2 * rf->ori;
+    quatf target = tempo * temp2 * rf.ori;
     
     if (target.dot(camori) < 0.0f) target = target * -1.0f;
     
@@ -1784,21 +1791,23 @@ void MainApp::tickStateGame(float delta)
     
     camori.normalize();
     
-    cammat = camori.getMatrix();
-    cammat = cammat.transpose();
-    const mat44f &rfmat = rf->getInverseOrientationMatrix();
-    //campos = rf->getPosition() + makevec3f(cammat.row[2]) * 100.0;
-    campos = rf->getPosition() +
+    PReferenceFrame camera;
+    camera.setOrientation(camori);
+    camera.updateMatrices();
+    cammat = camera.getInverseOrientationMatrix();
+    
+    const mat44f &rfmat = rf.getInverseOrientationMatrix();
+    //campos = rf.getPosition() + makevec3f(cammat.row[2]) * 100.0;
+    campos = rf.getPosition() +
       makevec3f(rfmat.row[1]) * 1.7f +
       makevec3f(rfmat.row[2]) * 0.4f;
     } break;
     
     // Side (right wheel)
   case 2: {
-    quatf temp2;
-    temp2.fromZAngle(camera_user_angle);
+    quatf temp2(0.0f, 0.0f, camera_user_angle);
     
-    quatf target = tempo * temp2 * rf->ori;
+    quatf target = tempo * temp2 * rf.ori;
     
     if (target.dot(camori) < 0.0f) target = target * -1.0f;
     
@@ -1806,12 +1815,14 @@ void MainApp::tickStateGame(float delta)
     camori = target;
     
     camori.normalize();
-    
-    cammat = camori.getMatrix();
-    cammat = cammat.transpose();
-    const mat44f &rfmat = rf->getInverseOrientationMatrix();
-    //campos = rf->getPosition() + makevec3f(cammat.row[2]) * 100.0;
-    campos = rf->getPosition() +
+    PReferenceFrame camera;
+    camera.setOrientation(camori);
+    camera.updateMatrices();
+    cammat = camera.getInverseOrientationMatrix();
+
+    const mat44f &rfmat = rf.getInverseOrientationMatrix();
+    //campos = rf.getPosition() + makevec3f(cammat.row[2]) * 100.0;
+    campos = rf.getPosition() +
       makevec3f(rfmat.row[0]) * 1.1f +
       makevec3f(rfmat.row[1]) * 0.3f +
       makevec3f(rfmat.row[2]) * 0.1f;
@@ -1819,10 +1830,9 @@ void MainApp::tickStateGame(float delta)
 
     // Hood
   case 3: {
-    quatf temp2;
-    temp2.fromZAngle(camera_user_angle);
+    quatf temp2(0.0f, 0.0f, camera_user_angle);
 
-    quatf target = tempo * temp2 * rf->ori;
+    quatf target = tempo * temp2 * rf.ori;
 
     if (target.dot(camori) < 0.0f) target = target * -1.0f;
 
@@ -1830,34 +1840,37 @@ void MainApp::tickStateGame(float delta)
     camori = target;
 
     camori.normalize();
+    PReferenceFrame camera;
+    camera.setOrientation(camori);
+    camera.updateMatrices();
+    cammat = camera.getInverseOrientationMatrix();
 
-    cammat = camori.getMatrix();
-    cammat = cammat.transpose();
-    const mat44f &rfmat = rf->getInverseOrientationMatrix();
-    //campos = rf->getPosition() + makevec3f(cammat.row[2]) * 100.0;
-    campos = rf->getPosition() +
+    const mat44f &rfmat = rf.getInverseOrientationMatrix();
+    //campos = rf.getPosition() + makevec3f(cammat.row[2]) * 100.0;
+    campos = rf.getPosition() +
       makevec3f(rfmat.row[1]) * 0.50f +
       makevec3f(rfmat.row[2]) * 0.85f;
     } break;
 
     // Periscope view
   case 4:{
-    quatf temp2;
-    temp2.fromZAngle(camera_user_angle);
+    quatf temp2(0.0f, 0.0f, camera_user_angle);
 
-    quatf target = tempo * temp2 * rf->ori;
+    quatf target = tempo * temp2 * rf.ori;
 
     if (target.dot(camori) < 0.0f) target = target * -1.0f;
 
     PULLTOWARD(camori, target, delta * 25.0f);
 
     camori.normalize();
+    PReferenceFrame camera;
+    camera.setOrientation(camori);
+    camera.updateMatrices();
+    cammat = camera.getInverseOrientationMatrix();
 
-    cammat = camori.getMatrix();
-    cammat = cammat.transpose();
-    const mat44f &rfmat = rf->getInverseOrientationMatrix();
-    //campos = rf->getPosition() + makevec3f(cammat.row[2]) * 100.0;
-    campos = rf->getPosition() +
+    const mat44f &rfmat = rf.getInverseOrientationMatrix();
+    //campos = rf.getPosition() + makevec3f(cammat.row[2]) * 100.0;
+    campos = rf.getPosition() +
       makevec3f(rfmat.row[1]) * 1.7f +
       makevec3f(rfmat.row[2]) * 5.0f;
     } break;
@@ -1867,13 +1880,12 @@ void MainApp::tickStateGame(float delta)
     // TODO: broken because of "world turns upside down" bug
     //
   case -1:{
-    quatf temp2, temp3, temp4;
-    temp2.fromZAngle(forwangle + camera_user_angle);
-    temp3.fromXAngle(noseangle);
+    quatf temp2(0.0f, 0.0f, forwangle + camera_user_angle);
+    quatf temp3(noseangle, 0.0f, 0.0f);
 
     //if (tempo.dot(temp2) < 0.0f) tempo = tempo * -1.0f;
 
-    temp4 = temp3 * temp2;
+    quatf temp4 = temp3 * temp2;
 
     quatf target = tempo * temp4;
     
@@ -1883,11 +1895,13 @@ void MainApp::tickStateGame(float delta)
     PULLTOWARD(camori, target, delta * 3.0f);
     
     camori.normalize();
+    PReferenceFrame camera;
+    camera.setOrientation(camori);
+    camera.updateMatrices();
+    cammat = camera.getInverseOrientationMatrix();
     
-    cammat = camori.getMatrix();
-    cammat = cammat.transpose();
-    //campos = rf->getPosition() + makevec3f(cammat.row[2]) * 100.0;
-    campos = rf->getPosition() +
+    //campos = rf.getPosition() + makevec3f(cammat.row[2]) * 100.0;
+    campos = rf.getPosition() +
       makevec3f(cammat.row[1]) * 1.6f +
       makevec3f(cammat.row[2]) * 6.0f;
     }
@@ -1897,7 +1911,7 @@ void MainApp::tickStateGame(float delta)
   forw = makevec3f(cammat.row[0]);
   camera_angle = atan2(forw.y, forw.x);
   
-  vec2f diff = makevec2f(game->checkpt[vehic->nextcp].pt) - makevec2f(vehic->body->getPosition());
+  vec2f diff = makevec2f(game->checkpt[vehic->nextcp].pt) - makevec2f(vehic->getPosition());
   nextcpangle = -atan2(diff.y, diff.x) - forwangle + PI*0.5f;
   
   if (cfg_enable_sound) {
