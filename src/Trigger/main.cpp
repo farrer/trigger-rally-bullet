@@ -1721,7 +1721,6 @@ void MainApp::tickStateGame(float delta)
   PULLTOWARD(camera_user_angle, angtarg, delta * 4.0f);
   
   quatf tempo;
-  //tempo.fromThreeAxisAngle(vec3f(-1.3,0.0,0.0));
   
   // allow temporary camera view changes for this frame
   int cameraview_mod = cameraview;
@@ -1730,9 +1729,9 @@ void MainApp::tickStateGame(float delta)
     cameraview_mod = 0;
     static float spinner = 0.0f;
     spinner += 1.4f * delta;
-    tempo = quatf(-PI*0.5f,0.0f,spinner);
+    tempo = quatf(0.0f, -PI*0.5f,-spinner);
   } else {
-    tempo = quatf(-PI*0.5f,0.0f,0.0f);
+    tempo = quatf(0.0f, -PI*0.5f, 0.0f);
   }
   
   renderowncar = (cameraview_mod != 1);
@@ -1753,7 +1752,7 @@ void MainApp::tickStateGame(float delta)
       // Chase
     default:   
   case 0: {
-    quatf temp2(0.0f, 0.0f, forwangle + camera_user_angle);
+    quatf temp2(0.0f, 0.0f, forwangle - camera_user_angle);
     
     quatf target = tempo * temp2;
     
@@ -1768,22 +1767,16 @@ void MainApp::tickStateGame(float delta)
     camera.updateMatrices();
     cammat = camera.getOrientationMatrix();
 
-    //campos = rf.getPosition() + makevec3f(cammat.row[2]) * 100.0;
-#if 1
-    //FIXME: broken camera rotation!
-    campos = rf.getPosition() + vec3f(0.0f, 0.0f, 10.0f);
-#else
     campos = rf.getPosition() +
       makevec3f(cammat.row[1]) * 1.6f +
       makevec3f(cammat.row[2]) * 5.0f;
-#endif
     } break;
     
     // Bumper
   case 1: {
-    quatf temp2(0.0f, 0.0f, camera_user_angle);
+    quatf temp2(0.0f, 0.0f, forwangle - camera_user_angle);
     
-    quatf target = tempo * temp2 * rf.ori;
+    quatf target = tempo * temp2;
     
     if (target.dot(camori) < 0.0f) target = target * -1.0f;
     
@@ -1805,9 +1798,9 @@ void MainApp::tickStateGame(float delta)
     
     // Side (right wheel)
   case 2: {
-    quatf temp2(0.0f, 0.0f, camera_user_angle);
+    quatf temp2(0.0f, 0.0f, forwangle - camera_user_angle);
     
-    quatf target = tempo * temp2 * rf.ori;
+    quatf target = tempo * temp2;
     
     if (target.dot(camori) < 0.0f) target = target * -1.0f;
     
@@ -1830,9 +1823,9 @@ void MainApp::tickStateGame(float delta)
 
     // Hood
   case 3: {
-    quatf temp2(0.0f, 0.0f, camera_user_angle);
+    quatf temp2(0.0f, 0.0f, forwangle - camera_user_angle);
 
-    quatf target = tempo * temp2 * rf.ori;
+    quatf target = tempo * temp2;
 
     if (target.dot(camori) < 0.0f) target = target * -1.0f;
 
@@ -1854,9 +1847,9 @@ void MainApp::tickStateGame(float delta)
 
     // Periscope view
   case 4:{
-    quatf temp2(0.0f, 0.0f, camera_user_angle);
+    quatf temp2(0.0f, 0.0f, forwangle - camera_user_angle);
 
-    quatf target = tempo * temp2 * rf.ori;
+    quatf target = tempo * temp2;
 
     if (target.dot(camori) < 0.0f) target = target * -1.0f;
 
@@ -1880,7 +1873,7 @@ void MainApp::tickStateGame(float delta)
     // TODO: broken because of "world turns upside down" bug
     //
   case -1:{
-    quatf temp2(0.0f, 0.0f, forwangle + camera_user_angle);
+    quatf temp2(0.0f, 0.0f, -forwangle - camera_user_angle);
     quatf temp3(noseangle, 0.0f, 0.0f);
 
     //if (tempo.dot(temp2) < 0.0f) tempo = tempo * -1.0f;

@@ -797,11 +797,15 @@ void MainApp::renderStateGame(float eyetranslation)
     mat44f cammat = camera.getOrientationMatrix();
     mat44f cammat_inv = camera.getInverseOrientationMatrix();
 
+    btTransform trans(camori);
+    btScalar openglMatrix[16];
+    trans.getOpenGLMatrix(openglMatrix);
+
+
     //glTranslatef(0.0,0.0,-40.0);
     glTranslatef(-eyetranslation, 0.0f, 0.0f);
 
-    //FIXME: broken camera rotation
-    //glMultMatrixf(cammat);
+    glMultMatrixf(openglMatrix);
 
     glTranslatef(-campos.x, -campos.y, -campos.z);
 
