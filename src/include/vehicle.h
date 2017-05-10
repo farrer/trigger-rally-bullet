@@ -239,6 +239,16 @@ public:
   std::string pstat_enginebhp;
   std::string pstat_wheeldrive;
   std::string pstat_handling;
+
+  /*! Each possible wheel drive type */
+  enum WheelDriveType
+  {
+     WHEEL_DRIVE_TYPE_FWD,
+     WHEEL_DRIVE_TYPE_RWD,
+     WHEEL_DRIVE_TYPE_4WD
+  };
+
+  WheelDriveType wheeldrive; /**< Vehicle's wheel drive type */
   
   int coretype;
   

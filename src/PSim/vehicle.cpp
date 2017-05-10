@@ -126,6 +126,7 @@ bool PVehicleType::load(const std::string &filename, PSSModel &ssModel)
     pstat_wheeldrive = "N/A";
     pstat_handling = "N/A";
   
+  wheeldrive = WHEEL_DRIVE_TYPE_FWD;
   mass = 1.0;
   dims = vec3f(1.0,1.0,1.0);
   
@@ -204,7 +205,18 @@ bool PVehicleType::load(const std::string &filename, PSSModel &ssModel)
         if (val != nullptr) pstat_enginebhp = val;
 
         val = walk->Attribute("wheeldrive");
-        if (val != nullptr) pstat_wheeldrive = val;
+        if (val != nullptr) {
+           pstat_wheeldrive = val;
+           if(pstat_wheeldrive == "RWD") {
+             wheeldrive = PVehicleType::WHEEL_DRIVE_TYPE_RWD;
+           }
+           else if(pstat_wheeldrive == "4WD") {
+             wheeldrive = PVehicleType::WHEEL_DRIVE_TYPE_4WD;
+           }
+           else {
+             wheeldrive = PVehicleType::WHEEL_DRIVE_TYPE_FWD;
+           }
+        }
 
         val = walk->Attribute("handling");
         if (val != nullptr) pstat_handling = val;
@@ -937,11 +949,23 @@ void PVehicle::tick(float delta)
   
   float turnfactor = state.turn.z;// /
 
-  /* Applying engine force on rear wheels. */
-  //TODO: Vehicle should be configurable on which wheels receive 
-  //engine traction
-  vehicle->applyEngineForce(drivetorque*10, 2);
-  vehicle->applyEngineForce(drivetorque*10, 3);
+  //FIXME: drive torque shouldn't be multiplied. It is now as I broke
+  //the gears.
+  /* Applying engine force to the wheels, based on transmission type */
+  if((type->wheeldrive == PVehicleType::WHEEL_DRIVE_TYPE_RWD) || 
+     (type->wheeldrive == PVehicleType::WHEEL_DRIVE_TYPE_4WD))
+  {
+     /* Rear wheels */
+     vehicle->applyEngineForce(drivetorque*10, 2);
+     vehicle->applyEngineForce(drivetorque*10, 3);
+  }
+  if((type->wheeldrive == PVehicleType::WHEEL_DRIVE_TYPE_FWD) || 
+     (type->wheeldrive == PVehicleType::WHEEL_DRIVE_TYPE_4WD))
+  {
+     /* Front wheels */
+     vehicle->applyEngineForce(drivetorque*10, 0);
+     vehicle->applyEngineForce(drivetorque*10, 1);
+  }
 
   /* Apply turn factor to front wheels */
   vehicle->setSteeringValue(-1*turnfactor, 0);
