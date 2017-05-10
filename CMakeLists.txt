@@ -23,7 +23,8 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${BIN_DIR})
 # Some Options
 option(RENDER_DEBUG_ENGINE_RPM "Render car engine RPM" OFF)
 option(RENDER_DEBUG_TIME "Render time as debug" OFF)
-option(RENDER_DEBUG_BULLET "Render only bullet physic primitives" OFF)
+option(RENDER_DEBUG_BULLET "Render all bullet physic primitives" OFF)
+option(RENDER_DEBUG_BULLET_ONLY_VEHICLE "Render only bullet physic vehicle" OFF)
 
 project(trigger-rally)
 

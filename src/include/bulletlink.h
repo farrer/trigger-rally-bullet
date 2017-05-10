@@ -49,6 +49,9 @@ class BulletLink
       /*! Do the draw of current physics for debug. */
       static void debugDraw();
 
+      /*! Get our debug draw (usually for an specific object draw */
+      static BulletDebugDraw* getDebugDraw() { return bulletDebugDraw; };
+
       /*! Step the rigid body
        * \param timeStep -> current time of this step (in seconds).
        * \param maxSubSteps -> numer of bullet sub steps */

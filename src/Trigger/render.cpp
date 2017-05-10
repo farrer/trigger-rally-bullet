@@ -864,13 +864,15 @@ void MainApp::renderStateGame(float eyetranslation)
     renderSky(glMat);
 
     glEnable(GL_LIGHTING);
-
     for (unsigned int v=0; v<game->vehicle.size(); ++v)
     {
 
         if (!renderowncar && v == 0) continue;
 
         PVehicle *vehic = game->vehicle[v];
+#if RENDER_DEBUG_BULLET_ONLY_VEHICLE && !RENDER_DEBUG_BULLET
+        vehic->debugDraw();
+#endif
         for (unsigned int i=0; i<vehic->part.size(); ++i)
         {
             if (vehic->type->part[i].model)

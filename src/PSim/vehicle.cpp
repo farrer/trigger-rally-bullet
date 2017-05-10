@@ -548,11 +548,6 @@ PVehicle::PVehicle(PSim &sim_parent, PVehicleType *_type) :
   sim(sim_parent), type(_type), dsysi(&_type->dsys), vehicle(NULL),
   vehicleRayCaster(NULL), chassisRigidBody(NULL), chassisMotionState(NULL)
 {
-#if 0
-  body = sim.createRigidBody();
-  
-  body->setMassCuboid(type->mass, type->dims);
-#endif  
   state.setZero();
   ctrl.setZero();
   
@@ -592,10 +587,17 @@ PVehicle::PVehicle(PSim &sim_parent, PVehicleType *_type) :
   //mNetFlags.set(Ghostable);
 }
 
+void PVehicle::debugDraw()
+{
+   vehicle->debugDraw(BulletLink::getDebugDraw());
+   BulletLink::getDebugDraw()->render();
+}
+
 void PVehicle::createBulletVehicle()
 {
   //TODO: get vehicle halfExtends from its model
-  btVector3 halfExtends(1, 2, btScalar(0.5));
+  //btVector3 halfExtends(1, 2, btScalar(0.5));
+  btVector3 halfExtends(type->dims.x, type->dims.y, type->dims.z - 0.6f);
 
   btCollisionShape* chassisShape = new btBoxShape(halfExtends);
   collisionShapes.push_back(chassisShape);
@@ -640,19 +642,16 @@ void PVehicle::createChassisRigidBodyFromShape(btCollisionShape* chassisShape)
   chassisTransform.setIdentity();
   chassisTransform.setOrigin(btVector3(0, 0, 1));
 
-  //FIXME: use real car values for mass
-  btScalar mass(1200);
-
   /* Calculate its local inertia */
   btVector3 localInertia(0, 0, 0);
-  chassisShape->calculateLocalInertia(mass, localInertia);
+  chassisShape->calculateLocalInertia(type->mass, localInertia);
 
   /* Create our chassis motion state */
   chassisMotionState = new btDefaultMotionState(chassisTransform);
 
   /* Finally, the chassis rigid body */
-  btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, chassisMotionState, 
-        chassisShape, localInertia);
+  btRigidBody::btRigidBodyConstructionInfo rbInfo(type->mass, 
+        chassisMotionState, chassisShape, localInertia);
   chassisRigidBody = new btRigidBody(rbInfo); 
   BulletLink::addRigidBody(chassisRigidBody);
 }
@@ -667,7 +666,7 @@ void PVehicle::addWheels(btVector3* halfExtents,
   btVector3 wheelDirectionCS0(0, 0, -1);
 
   /* The axis which the wheel rotates arround */
-  btVector3 wheelAxleCS(-1, 0, 0);
+  btVector3 wheelAxleCS(1, 0, 0);
 
   btScalar suspensionRestLength(0.7);
 
@@ -676,7 +675,7 @@ void PVehicle::addWheels(btVector3* halfExtents,
   btScalar wheelRadius(0.5);
 
   /* The height where the wheels are connected to the chassis */
-  btScalar connectionHeight(1.2);
+  btScalar connectionHeight(1.2f);
 
   /* All the wheel configuration assumes the vehicle is centered at the 
    * origin and a right handed coordinate system is used */
@@ -941,8 +940,8 @@ void PVehicle::tick(float delta)
   /* Applying engine force on rear wheels. */
   //TODO: Vehicle should be configurable on which wheels receive 
   //engine traction
-  vehicle->applyEngineForce(-1*drivetorque*10, 2);
-  vehicle->applyEngineForce(-1*drivetorque*10, 3);
+  vehicle->applyEngineForce(drivetorque*10, 2);
+  vehicle->applyEngineForce(drivetorque*10, 3);
 
   /* Apply turn factor to front wheels */
   vehicle->setSteeringValue(-1*turnfactor, 0);

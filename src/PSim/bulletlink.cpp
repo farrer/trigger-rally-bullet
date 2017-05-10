@@ -28,7 +28,7 @@ void BulletLink::createBulletWorld() {
   dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher, broadPhase, 
         solver,collisionConfiguration);
   dynamicsWorld->setGravity(btVector3(0, 0, -9.8f));
-#if RENDER_DEBUG_BULLET
+#if RENDER_DEBUG_BULLET || RENDER_DEBUG_BULLET_ONLY_VEHICLE
   bulletDebugDraw = new BulletDebugDraw(); 
   bulletDebugDraw->setDebugMode(btIDebugDraw::DBG_DrawWireframe);
   dynamicsWorld->setDebugDrawer(bulletDebugDraw);

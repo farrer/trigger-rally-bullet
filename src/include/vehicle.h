@@ -242,8 +242,8 @@ public:
   
   int coretype;
   
-  float mass;
-  vec3f dims;
+  float mass; /**< Vehicle's mass */
+  vec3f dims; /**< Vehicle's dimensions, as half? sizes for each axys */
   
   std::vector<PVehicleTypePart> part;
   
@@ -326,9 +326,6 @@ public:
   
   PVehicleType *type;
 
-#if 0
-  PRigidBody *body;
-#endif
   std::vector<PVehiclePart> part;
   
   v_state_s state;
@@ -387,6 +384,9 @@ public:
 
   /*! \return current reference frame */
   PReferenceFrame getReferenceFrame() { return curReference; };
+
+  /*! Force a the debug draw of bullet's representation of this vehicle */
+  void debugDraw();
 
 public:
   /*
