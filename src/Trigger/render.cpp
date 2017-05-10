@@ -148,14 +148,14 @@ void MainApp::renderWater()
     glDisable(GL_TEXTURE_GEN_T);
 }
 
-void MainApp::renderSky(const mat44f &cammat)
+void MainApp::renderSky(const float glMat[16])
 {
     glFogf(GL_FOG_DENSITY, game->weather.fog.density_sky);
     glDepthRange(0.999,1.0);
     glDisable(GL_CULL_FACE);
     glPushMatrix(); // 1
     glLoadIdentity();
-    glMultMatrixf(cammat);
+    glMultMatrixf(glMat);
     tex_sky[0]->bind();
 #define CLRANGE     10
 #define CLFACTOR    0.02//0.014
@@ -790,22 +790,19 @@ void MainApp::renderStateGame(float eyetranslation)
 
     glPushMatrix(); // 0
 
+    btTransform trans(camori);
+    btScalar glMat[16];
+    trans.getOpenGLMatrix(glMat);
+
     PReferenceFrame camera;
     camera.setOrientation(camori);
     camera.updateMatrices();
-
-    mat44f cammat = camera.getOrientationMatrix();
     mat44f cammat_inv = camera.getInverseOrientationMatrix();
-
-    btTransform trans(camori);
-    btScalar openglMatrix[16];
-    trans.getOpenGLMatrix(openglMatrix);
-
 
     //glTranslatef(0.0,0.0,-40.0);
     glTranslatef(-eyetranslation, 0.0f, 0.0f);
 
-    glMultMatrixf(openglMatrix);
+    glMultMatrixf(glMat);
 
     glTranslatef(-campos.x, -campos.y, -campos.z);
 
@@ -864,7 +861,7 @@ void MainApp::renderStateGame(float eyetranslation)
         glBlendFunc(GL_ONE, GL_ZERO);
     }
 
-    renderSky(cammat);
+    renderSky(glMat);
 
     glEnable(GL_LIGHTING);
 

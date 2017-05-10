@@ -520,7 +520,7 @@ private:
 
 protected:
   void renderWater();
-  void renderSky(const mat44f &cammat);
+  void renderSky(const float glMat[16]);
 
   bool startGame(const std::string &filename);
   void toggleSounds(bool to);
