@@ -351,7 +351,7 @@ class PModel : public PResource {
 public:
   std::vector<PMesh> mesh;
 
-  std::pair<vec3f, vec3f> getExtents() const;
+  std::pair<vec3f, vec3f> getExtents();
 
 public:
   PModel (const std::string &filename, float globalScale = 1.0);
@@ -359,6 +359,10 @@ public:
 private:
   void loadASE (const std::string &filename, float globalScale);
   void loadOBJ (const std::string &filename, float globalScale);
+
+  vec3f min; /**< Min bounding box value */
+  vec3f max; /**< Max bounding box value */
+  bool shouldCalculateBounds; /**< If min,max values need to be updated */
 };
 
 struct PTerrainFoliageBand {

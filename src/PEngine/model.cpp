@@ -94,29 +94,34 @@ char *strtok2(char *input)
 
 
 
-std::pair<vec3f, vec3f> PModel::getExtents() const
+std::pair<vec3f, vec3f> PModel::getExtents()
 {
-  vec3f v_min(1000000000.0, 1000000000.0, 1000000000.0),
-    v_max(-1000000000.0, -1000000000.0, -1000000000.0);
+  if(shouldCalculateBounds) {
+    vec3f v_min(1000000000.0, 1000000000.0, 1000000000.0),
+          v_max(-1000000000.0, -1000000000.0, -1000000000.0);
 
-  for (unsigned int a=0; a<mesh.size(); ++a) {
-    for (unsigned int b=0; b<mesh[a].vert.size(); ++b) {
-      if (v_min.x > mesh[a].vert[b].x)
-        v_min.x = mesh[a].vert[b].x;
-      if (v_max.x < mesh[a].vert[b].x)
-        v_max.x = mesh[a].vert[b].x;
-      if (v_min.y > mesh[a].vert[b].y)
-        v_min.y = mesh[a].vert[b].y;
-      if (v_max.y < mesh[a].vert[b].y)
-        v_max.y = mesh[a].vert[b].y;
-      if (v_min.z > mesh[a].vert[b].z)
-        v_min.z = mesh[a].vert[b].z;
-      if (v_max.z < mesh[a].vert[b].z)
-        v_max.z = mesh[a].vert[b].z;
+    for (unsigned int a=0; a<mesh.size(); ++a) {
+      for (unsigned int b=0; b<mesh[a].vert.size(); ++b) {
+        if (v_min.x > mesh[a].vert[b].x)
+          v_min.x = mesh[a].vert[b].x;
+        if (v_max.x < mesh[a].vert[b].x)
+          v_max.x = mesh[a].vert[b].x;
+        if (v_min.y > mesh[a].vert[b].y)
+          v_min.y = mesh[a].vert[b].y;
+        if (v_max.y < mesh[a].vert[b].y)
+          v_max.y = mesh[a].vert[b].y;
+        if (v_min.z > mesh[a].vert[b].z)
+          v_min.z = mesh[a].vert[b].z;
+        if (v_max.z < mesh[a].vert[b].z)
+          v_max.z = mesh[a].vert[b].z;
+      }
     }
+    shouldCalculateBounds = false;
+    min = v_min;
+    max = v_max;
   }
 
-  return std::pair<vec3f, vec3f> (v_min, v_max);
+  return std::pair<vec3f, vec3f> (min, max);
 }
 
 
@@ -127,6 +132,7 @@ struct matl_s {
 
 PModel::PModel (const std::string &filename, float globalScale)
 {
+   shouldCalculateBounds = true;
    /* Let's check each model type will load (ASE or OBJ) */
    if(filename.find(".ase") != std::string::npos)
    {
