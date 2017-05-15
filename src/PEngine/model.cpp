@@ -94,34 +94,29 @@ char *strtok2(char *input)
 
 
 
-std::pair<vec3f, vec3f> PModel::getExtents()
+std::pair<vec3f, vec3f> PModel::calculateExtents()
 {
-  if(shouldCalculateBounds) {
-    vec3f v_min(1000000000.0, 1000000000.0, 1000000000.0),
-          v_max(-1000000000.0, -1000000000.0, -1000000000.0);
+   vec3f v_min(1000000000.0, 1000000000.0, 1000000000.0),
+         v_max(-1000000000.0, -1000000000.0, -1000000000.0);
 
-    for (unsigned int a=0; a<mesh.size(); ++a) {
+   for (unsigned int a=0; a<mesh.size(); ++a) {
       for (unsigned int b=0; b<mesh[a].vert.size(); ++b) {
-        if (v_min.x > mesh[a].vert[b].x)
-          v_min.x = mesh[a].vert[b].x;
-        if (v_max.x < mesh[a].vert[b].x)
-          v_max.x = mesh[a].vert[b].x;
-        if (v_min.y > mesh[a].vert[b].y)
-          v_min.y = mesh[a].vert[b].y;
-        if (v_max.y < mesh[a].vert[b].y)
-          v_max.y = mesh[a].vert[b].y;
-        if (v_min.z > mesh[a].vert[b].z)
-          v_min.z = mesh[a].vert[b].z;
-        if (v_max.z < mesh[a].vert[b].z)
-          v_max.z = mesh[a].vert[b].z;
+         if (v_min.x > mesh[a].vert[b].x)
+            v_min.x = mesh[a].vert[b].x;
+         if (v_max.x < mesh[a].vert[b].x)
+            v_max.x = mesh[a].vert[b].x;
+         if (v_min.y > mesh[a].vert[b].y)
+            v_min.y = mesh[a].vert[b].y;
+         if (v_max.y < mesh[a].vert[b].y)
+            v_max.y = mesh[a].vert[b].y;
+         if (v_min.z > mesh[a].vert[b].z)
+            v_min.z = mesh[a].vert[b].z;
+         if (v_max.z < mesh[a].vert[b].z)
+            v_max.z = mesh[a].vert[b].z;
       }
-    }
-    shouldCalculateBounds = false;
-    min = v_min;
-    max = v_max;
-  }
+   }
 
-  return std::pair<vec3f, vec3f> (min, max);
+  return std::pair<vec3f, vec3f> (v_min, v_max);
 }
 
 
@@ -132,7 +127,6 @@ struct matl_s {
 
 PModel::PModel (const std::string &filename, float globalScale)
 {
-   shouldCalculateBounds = true;
    /* Let's check each model type will load (ASE or OBJ) */
    if(filename.find(".ase") != std::string::npos)
    {
@@ -142,6 +136,9 @@ PModel::PModel (const std::string &filename, float globalScale)
    {
       loadOBJ(filename, globalScale);
    }
+   /* Define model's bounding box */
+   std::pair<vec3f, vec3f> ext = calculateExtents();
+   half = (ext.second - ext.first) / 2.0f;
 }
 
 /*! Load an .obj model from file to the pengine structures.

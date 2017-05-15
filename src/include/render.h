@@ -351,7 +351,7 @@ class PModel : public PResource {
 public:
   std::vector<PMesh> mesh;
 
-  std::pair<vec3f, vec3f> getExtents();
+  const vec3f getHalfExtents() const { return half; };
 
 public:
   PModel (const std::string &filename, float globalScale = 1.0);
@@ -360,9 +360,9 @@ private:
   void loadASE (const std::string &filename, float globalScale);
   void loadOBJ (const std::string &filename, float globalScale);
 
-  vec3f min; /**< Min bounding box value */
-  vec3f max; /**< Max bounding box value */
-  bool shouldCalculateBounds; /**< If min,max values need to be updated */
+  std::pair<vec3f, vec3f> calculateExtents();
+
+  vec3f half; /**< Half extents of bounding box */
 };
 
 struct PTerrainFoliageBand {
