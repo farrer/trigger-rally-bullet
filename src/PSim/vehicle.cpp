@@ -607,9 +607,8 @@ void PVehicle::debugDraw()
 
 void PVehicle::createBulletVehicle()
 {
-  //TODO: get vehicle halfExtends from its model
-  //btVector3 halfExtends(1, 2, btScalar(0.5));
-  btVector3 halfExtends(type->dims.x, type->dims.y, type->dims.z - 0.6f);
+  vec3f ext = type->part[0].model->getHalfExtents() * type->part[0].scale;
+  btVector3 halfExtends(ext[0], ext[1], ext[2]);
 
   btCollisionShape* chassisShape = new btBoxShape(halfExtends);
   collisionShapes.push_back(chassisShape);
@@ -627,7 +626,7 @@ void PVehicle::createBulletVehicle()
    * gravity keeping it under our chassis, and not in the middle of it */
   btTransform localTransform;
   localTransform.setIdentity();
-  localTransform.setOrigin(btVector3(0, 0, 1));
+  localTransform.setOrigin(btVector3(0.0f, 0.0f, 1.0f));
   compound->addChildShape(localTransform, chassisShape);
 
   createChassisRigidBodyFromShape(compound);
@@ -652,7 +651,7 @@ void PVehicle::createChassisRigidBodyFromShape(btCollisionShape* chassisShape)
 {
   btTransform chassisTransform;
   chassisTransform.setIdentity();
-  chassisTransform.setOrigin(btVector3(0, 0, 1));
+  chassisTransform.setOrigin(btVector3(0.0f, 0.0f, 1.0f));
 
   /* Calculate its local inertia */
   btVector3 localInertia(0, 0, 0);
@@ -716,15 +715,26 @@ void PVehicle::addWheels(btVector3* halfExtents,
   for(int i = 0; i < vehicle->getNumWheels(); i++)
   {
     btWheelInfo& wheel = vehicle->getWheelInfo(i);
-    wheel.m_suspensionStiffness = 50;
+    /* The stiffness constant for the suspension. 10.0 - Offroad buggy,
+     * 50.0 - Sports car, 200.0 - F1 Car */
+    wheel.m_suspensionStiffness = 20.0f;
     wheel.m_wheelsDampingCompression = btScalar(0.3) * 2 * 
        btSqrt(wheel.m_suspensionStiffness);//btScalar(0.8);
     wheel.m_wheelsDampingRelaxation = btScalar(0.5) * 2 * 
        btSqrt(wheel.m_suspensionStiffness);//1;
 
-    /* Larger friction slips will result in better handling */
-    wheel.m_frictionSlip = btScalar(1.2);
-    wheel.m_rollInfluence = 1;
+    /* The coefficient of friction between the tyre and the ground.
+     * Should be about 0.8 for realistic cars, but can increased for better
+     * handling. */
+    wheel.m_frictionSlip = btScalar(0.8);
+    /* Reduces the rolling torque applied from the wheels that cause the
+     * vehicle to roll over.
+     * This is a bit of a hack, but it's quite effective. 0.0 = no roll,
+     * 1.0 = physical behaviour.
+     * If m_frictionSlip is too high, you'll need to reduce this to stop
+     * the vehicle rolling over.
+     * You should also try lowering the vehicle's centre of mass */
+     wheel.m_rollInfluence = 1; 
   }
 }
 
