@@ -1607,7 +1607,10 @@ void MainApp::renderStateGame(float eyetranslation)
           getSSRender().drawText(buff, PTEXT_HZA_CENTER | PTEXT_VTA_CENTER);
 
           // speed number
-          const int speed = std::fabs(vehic->getWheelSpeed()) * hud_speedo_mps_speed_mult;
+          int speed = vehic->getSpeed();
+          if (cfg_speed_unit == MainApp::Speedunit::mph) {
+             speed = KPH_TO_MPH(speed);
+          }
           std::string speedstr = std::to_string(speed);
 
           //glColor4f(1.0f, 1.0f, 1.0f, 1.0f);

@@ -36,6 +36,8 @@
 #define MPS_TO_MPH(x) ((x) * 2.23693629f) // thanks Google!
 #define MPS_TO_KPH(x) ((x) * 3.6f)
 
+#define KPH_TO_MPH(x) ((x) * 0.62f)
+
 // Starting position in degrees, measured counter-clockwise from the x-axis.
 #define MPH_ZERO_DEG 210
 #define KPH_ZERO_DEG 220
@@ -428,7 +430,8 @@ public:
       return 0.0f;
     }
   }
-  float getWheelSpeed() { return wheel_speed; }
+  /*! \return current vehicle speed, in km/h */
+  const float getSpeed() const { return vehicle->getCurrentSpeedKmHour(); }
   float getSkidLevel() { return skid_level; }
 
 private:

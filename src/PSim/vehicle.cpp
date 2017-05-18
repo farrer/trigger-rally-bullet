@@ -679,6 +679,7 @@ void PVehicle::addWheels(btVector3* halfExtents,
   /* The axis which the wheel rotates arround */
   btVector3 wheelAxleCS(1, 0, 0);
 
+  /* The maximum length of the suspension (metres) */
   btScalar suspensionRestLength(0.7);
 
   btScalar wheelWidth(0.4);
@@ -717,11 +718,20 @@ void PVehicle::addWheels(btVector3* halfExtents,
     btWheelInfo& wheel = vehicle->getWheelInfo(i);
     /* The stiffness constant for the suspension. 10.0 - Offroad buggy,
      * 50.0 - Sports car, 200.0 - F1 Car */
-    wheel.m_suspensionStiffness = 20.0f;
+    wheel.m_suspensionStiffness = 35.0f;
+    /* The damping coefficient for when the suspension is compressed. Set
+     * to k * 2.0 * btSqrt(m_suspensionStiffness) so k is proportional to 
+     * critical damping.
+     * k = 0.0 undamped & bouncy, k = 1.0 critical damping
+     * k = 0.1 to 0.3 are good values */
     wheel.m_wheelsDampingCompression = btScalar(0.3) * 2 * 
-       btSqrt(wheel.m_suspensionStiffness);//btScalar(0.8);
+       btSqrt(wheel.m_suspensionStiffness);
+    /* The damping coefficient for when the suspension is expanding. See
+     * the comments for m_wheelsDampingCompression for how to set k.
+     * m_wheelsDampingRelaxation should be slightly larger than
+     * m_wheelsDampingCompression, eg k = 0.2 to 0.5 */
     wheel.m_wheelsDampingRelaxation = btScalar(0.5) * 2 * 
-       btSqrt(wheel.m_suspensionStiffness);//1;
+       btSqrt(wheel.m_suspensionStiffness);
 
     /* The coefficient of friction between the tyre and the ground.
      * Should be about 0.8 for realistic cars, but can increased for better
