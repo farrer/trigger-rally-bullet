@@ -31,12 +31,19 @@ float PDriveSystem::getPowerAtRPS(float rps)
     power = powercurve[p-1].y + (0.0f - powercurve[p-1].y) *
       ( (rps - powercurve[p-1].x) / (powercurve.back().x - powercurve[p-1].x) );
   }
-  
+
   return power;
 }
 
 void PDriveSystemInstance::tick(float delta, float throttle, float wheel_rps)
 {
+  /* Note: the old trigger physics simulation was defining wrong values
+   * for the wheel revolutions per second (very high ones). Thus, to not
+   * break the PDriveInstance or have to rewrite it from scratch, this
+   * correction_multiplier is used. */
+  const float correction_multiplier = 20.0f;
+  wheel_rps *= correction_multiplier;
+
   rps = wheel_rps * dsys->gear[currentgear].y;
   
   bool wasreverse = reverse;
@@ -57,7 +64,7 @@ void PDriveSystemInstance::tick(float delta, float throttle, float wheel_rps)
   }
   
   out_torque = dsys->getPowerAtRPS(rps) * dsys->gear[currentgear].y / rps;
-  
+
   if (!reverse) {
     int newtarget_rel = 0;
     
@@ -93,14 +100,12 @@ void PDriveSystemInstance::tick(float delta, float throttle, float wheel_rps)
       targetgear_rel = newtarget_rel;
     }
   }
-  
-  out_torque *= throttle;
+
+  out_torque *= throttle * correction_multiplier / 2.0f;
   
   if (reverse) {
     out_torque *= -1.0;
   }
-  
-  out_torque -= wheel_rps * 0.1f;
 }
 
 
@@ -147,8 +152,6 @@ bool PVehicleType::load(const std::string &filename, PSSModel &ssModel)
   float allscale = 1.0;
   
   float drive_total = 0.0f;
-  
-  wheel_speed_multiplier = 0.0f;
   
   //
   
@@ -460,7 +463,6 @@ bool PVehicleType::load(const std::string &filename, PSSModel &ssModel)
           
           vtp->wheel.push_back(vtw);
           drive_total += vtw.drive;
-          wheel_speed_multiplier += 1.0f;
         } else if (!strcmp(walk2->Value(), "jetflame")) {
           vtp->flame.push_back(PReferenceFrame());
           
@@ -509,9 +511,6 @@ bool PVehicleType::load(const std::string &filename, PSSModel &ssModel)
   else
     inverse_drive_total = 0.0f;
   
-  if (wheel_speed_multiplier > 0.0f)
-    wheel_speed_multiplier = 1.0f / wheel_speed_multiplier;
- 
   /* FIXME: use real vehicle values */
 
   return true;
@@ -684,7 +683,8 @@ void PVehicle::addWheels(btVector3* halfExtents,
 
   btScalar wheelWidth(0.4);
 
-  btScalar wheelRadius(0.5);
+  wheelRadius = 0.5f;
+  wheelPerimeter = 2 * M_PI * wheelRadius;
 
   /* The height where the wheels are connected to the chassis */
   btScalar connectionHeight(1.2f);
@@ -744,8 +744,15 @@ void PVehicle::addWheels(btVector3* halfExtents,
      * If m_frictionSlip is too high, you'll need to reduce this to stop
      * the vehicle rolling over.
      * You should also try lowering the vehicle's centre of mass */
-     wheel.m_rollInfluence = 1; 
+    wheel.m_rollInfluence = 1;
   }
+}
+
+float PVehicle::getWheelAngularSpeed(float delta) const
+{
+  /* Calculating by vehicle velocity and how many revolutions the wheel
+   * will do at that velocity */
+  return KPH_TO_MPS(getSpeed()) / wheelPerimeter;
 }
 
 
@@ -785,7 +792,6 @@ void PVehicle::doReset()
 #endif
   forwardspeed = 0.0f;
   wheel_angvel = 0.0f;
-  wheel_speed = 0.0f;
   
   dsysi.doReset();
   
@@ -826,7 +832,6 @@ void PVehicle::doReset2(const vec3f &pos, const quatf &ori)
 
   forwardspeed = 0.0f;
   wheel_angvel = 0.0f;
-  wheel_speed = 0.0f;
 
   dsysi.doReset();
 
@@ -962,29 +967,24 @@ void PVehicle::tick(float delta)
   vec3f forwarddir = makevec3f(body->getInverseOrientationMatrix().row[1]);
   //vec3f rightdir = makevec3f(body->getInverseOrientationMatrix().row[0]);
 #endif  
-  dsysi.tick(delta, state.throttle, wheel_angvel);
+  dsysi.tick(delta, state.throttle, getWheelAngularSpeed(delta));
   
   float drivetorque = dsysi.getOutputTorque();
-  //float drivetorque = 0.0f;
   
   float turnfactor = state.turn.z;// /
 
-  //FIXME: drive torque shouldn't be multiplied. It is now as I broke
-  //the gears.
   /* Applying engine force to the wheels, based on transmission type */
   if((type->wheeldrive == PVehicleType::WHEEL_DRIVE_TYPE_RWD) || 
-     (type->wheeldrive == PVehicleType::WHEEL_DRIVE_TYPE_4WD))
-  {
+     (type->wheeldrive == PVehicleType::WHEEL_DRIVE_TYPE_4WD)) {
      /* Rear wheels */
-     vehicle->applyEngineForce(drivetorque*10, 2);
-     vehicle->applyEngineForce(drivetorque*10, 3);
+     vehicle->applyEngineForce(drivetorque, 2);
+     vehicle->applyEngineForce(drivetorque, 3);
   }
   if((type->wheeldrive == PVehicleType::WHEEL_DRIVE_TYPE_FWD) || 
-     (type->wheeldrive == PVehicleType::WHEEL_DRIVE_TYPE_4WD))
-  {
+     (type->wheeldrive == PVehicleType::WHEEL_DRIVE_TYPE_4WD)) {
      /* Front wheels */
-     vehicle->applyEngineForce(drivetorque*10, 0);
-     vehicle->applyEngineForce(drivetorque*10, 1);
+     vehicle->applyEngineForce(drivetorque, 0);
+     vehicle->applyEngineForce(drivetorque, 1);
   }
 
   /* Apply turn factor to front wheels */
@@ -995,8 +995,6 @@ void PVehicle::tick(float delta)
     //(1.0f + fabsf(wheel_angvel) / 70.0f);
 #if 0
   wheel_angvel = 0.0f;
-  
-  wheel_speed = 0.0f;
   
   skid_level = 0.0f;
   
@@ -1276,13 +1274,10 @@ void PVehicle::tick(float delta)
       
       wheel_angvel += wheel.spin_vel * typewheel.drive;
       
-      wheel_speed += wheel.spin_vel * typewheel.radius;
     }
   }
   
   wheel_angvel *= type->inverse_drive_total;
-  
-  wheel_speed *= type->wheel_speed_multiplier;
   
   skid_level *= type->wheel_speed_multiplier;
 #endif

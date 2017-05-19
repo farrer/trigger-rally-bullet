@@ -37,6 +37,7 @@
 #define MPS_TO_KPH(x) ((x) * 3.6f)
 
 #define KPH_TO_MPH(x) ((x) * 0.62f)
+#define KPH_TO_MPS(x) ((x) / 3.6f)
 
 // Starting position in degrees, measured counter-clockwise from the x-axis.
 #define MPH_ZERO_DEG 210
@@ -138,7 +139,6 @@ public:
     } else {
       if (ratio <= 0.0f) return;
     }
-    
     gear.push_back(vec2f(ratio, 1.0f / ratio));
   }
   
@@ -266,8 +266,6 @@ public:
   
   float inverse_drive_total;
   
-  float wheel_speed_multiplier;
-  
 public:
   struct {
     // shared
@@ -368,7 +366,6 @@ public:
   // info
   float forwardspeed;
   float wheel_angvel;
-  float wheel_speed;
   float skid_level;
   
 public:
@@ -435,8 +432,14 @@ public:
   float getSkidLevel() { return skid_level; }
 
 private:
+
+  /*! \return angular speed of a wheel which receives engine 
+   * transmission power */
+  float getWheelAngularSpeed(float delta) const;
+
   /* note: bullet physics for vehicle in Trigger was based on Bullet's
-   * CarHandlingDemo as a starting point. */
+   * CarHandlingDemo as a starting point (also using Kester Maddock's
+   * Vehicle Simulation with Bullet documentation). */
 
   /*! Create the vehicle implementation for Bullet Physics integration */
   void createBulletVehicle();
@@ -459,6 +462,8 @@ private:
   /*! Collision shapes of the vehicle (ie: chassis, wheels) */
   btAlignedObjectArray<btCollisionShape*> collisionShapes;
   btDefaultMotionState* chassisMotionState; /**< Motion state for chassis */
+  btScalar wheelRadius;    /**< Current wheel radius */
+  btScalar wheelPerimeter; /**< wheelRadius * 2 * M_PI */
 
   /*! Current position and orientation. Note: kept at a PReferenceFrame
    * for compatibility with the way it was implemented for camera retrieve
