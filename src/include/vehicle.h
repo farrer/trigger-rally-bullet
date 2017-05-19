@@ -364,8 +364,6 @@ public:
   v_control_s ctrl;
   
   // info
-  float forwardspeed;
-  float wheel_angvel;
   float skid_level;
   
 public:

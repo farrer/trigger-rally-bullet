@@ -562,16 +562,12 @@ PVehicle::PVehicle(PSim &sim_parent, PVehicleType *_type) :
   state.setZero();
   ctrl.setZero();
   
-  forwardspeed = 0.0f;
-  
   blade_ang1 = 0.0;
   
   nextcp = 0;
   nextcdcp = 0;
   currentlap = 1;
   
-  wheel_angvel = 0.0f;
-
 #if 0
   reset_trigger_time = 0.0f;
 
@@ -790,9 +786,6 @@ void PVehicle::doReset()
     }
   }  
 #endif
-  forwardspeed = 0.0f;
-  wheel_angvel = 0.0f;
-  
   dsysi.doReset();
   
   state.setZero();
@@ -829,9 +822,6 @@ void PVehicle::doReset2(const vec3f &pos, const quatf &ori)
     }
   }
 #endif
-
-  forwardspeed = 0.0f;
-  wheel_angvel = 0.0f;
 
   dsysi.doReset();
 
@@ -931,8 +921,6 @@ void PVehicle::tick(float delta)
         reset_time = 0.0f;
     }
   }
-  
-  forwardspeed = loclinvel.y;
   
   // body turn control
   vec3f desiredturn = vec3f(

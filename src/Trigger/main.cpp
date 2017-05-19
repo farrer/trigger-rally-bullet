@@ -1628,13 +1628,13 @@ void MainApp::tickStateGame(float delta)
   float braketarget = 0.0f;
   
   if (ctrl.map[ActionForward].value > 0.0f) {
-    if (vehic->wheel_angvel > -10.0f)
+    if (vehic->getSpeed() >= 0.0f)
       throttletarget = ctrl.map[ActionForward].value;
     else
       braketarget = ctrl.map[ActionForward].value;
   }
   if (ctrl.map[ActionBack].value > 0.0f) {
-    if (vehic->wheel_angvel < 10.0f)
+    if (vehic->getSpeed() < 0.0f)
       throttletarget = -ctrl.map[ActionBack].value;
     else
       braketarget = ctrl.map[ActionBack].value;
@@ -1662,11 +1662,11 @@ void MainApp::tickStateGame(float delta)
       const vec3f bodydirtpos = game->vehicle[i]->getPosition();
       const dirtinfo bdi = PUtil::getDirtInfo(game->terrain->getRoadSurface(bodydirtpos));
 
-    if (bdi.startsize >= 0.30f && game->vehicle[i]->forwardspeed > 23.0f)
+    if (bdi.startsize >= 0.30f && game->vehicle[i]->getSpeed() > 23.0f)
     {
         if (game->vehicle[i]->canHaveDustTrail())
         {
-            const float sizemult = game->vehicle[i]->forwardspeed * 0.035f;
+            const float sizemult = game->vehicle[i]->getSpeed() * 0.035f;
             const vec3f bodydirtvec = {0, 0, 1}; // game->vehicle[i]->body->getLinearVelAtPoint(bodydirtpos);
             vec3f bodydirtcolor = game->terrain->getCmapColor(bodydirtpos);
 
@@ -1911,7 +1911,7 @@ void MainApp::tickStateGame(float delta)
     audinst_engine->setGain(cfg_volume_engine);
     audinst_engine->setPitch(vehic->getEngineRPM() / 9000.0f);
     
-    float windlevel = fabsf(vehic->forwardspeed) * 0.6f;
+    float windlevel = fabsf(vehic->getSpeed()) * 0.6f;
     
     audinst_wind->setGain(windlevel * 0.03f * cfg_volume_sfx);
     audinst_wind->setPitch(windlevel * 0.02f + 0.9f);
