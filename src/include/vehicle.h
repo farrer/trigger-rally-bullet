@@ -255,7 +255,8 @@ public:
   int coretype;
   
   float mass; /**< Vehicle's mass */
-  vec3f dims; /**< Vehicle's dimensions, as half? sizes for each axys */
+  float normalbrake; /**< Normal (foot) brake value */
+  float handbrake;   /**< Hand brake value */
   
   std::vector<PVehicleTypePart> part;
   

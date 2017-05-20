@@ -133,7 +133,8 @@ bool PVehicleType::load(const std::string &filename, PSSModel &ssModel)
   
   wheeldrive = WHEEL_DRIVE_TYPE_FWD;
   mass = 1.0;
-  dims = vec3f(1.0,1.0,1.0);
+  normalbrake = 50.0f;
+  handbrake = 500.0f;
   
   wheelscale = 1.0;
   wheelmodel = nullptr;
@@ -201,8 +202,6 @@ bool PVehicleType::load(const std::string &filename, PSSModel &ssModel)
 
     if (false) {
     } else if (!strcmp(walk->Value(), "pstats")) {
-        val = walk->Attribute("weightkg");
-        if (val != nullptr) pstat_weightkg = val;
 
         val = walk->Attribute("enginebhp");
         if (val != nullptr) pstat_enginebhp = val;
@@ -223,17 +222,23 @@ bool PVehicleType::load(const std::string &filename, PSSModel &ssModel)
 
         val = walk->Attribute("handling");
         if (val != nullptr) pstat_handling = val;
+    } else if (!strcmp(walk->Value(), "brake")) {
+      val = walk->Attribute("normal");
+      if(val != nullptr) {
+        normalbrake = atof(val);
+      }
+      val = walk->Attribute("handbrake");
+      if(val != nullptr) {
+        handbrake = atof(val);
+      }
     } else if (!strcmp(walk->Value(), "genparams")) {
 
       val = walk->Attribute("mass");
-      if (val) mass = atof(val);
-
-      val = walk->Attribute("dimensions");
-      if (val) {
-        sscanf(val, "%f , %f , %f", &dims.x, &dims.y, &dims.z);
-        dims *= allscale;
+      if (val != nullptr) {
+         pstat_weightkg = val;
+         mass = atof(val);
       }
-      
+
       val = walk->Attribute("wheelscale");
       if (val) wheelscale = atof(val);
       
@@ -966,8 +971,6 @@ void PVehicle::tick(float delta)
      drivetorque = 0.0f;
   }
 
-  //TODO: define brake values from file.
-
   /* Applying engine force and normal brake to the wheels, 
    * based on transmission type */
   if((type->wheeldrive == PVehicleType::WHEEL_DRIVE_TYPE_RWD) || 
@@ -978,11 +981,11 @@ void PVehicle::tick(float delta)
      vehicle->applyEngineForce(drivetorque, 3);
      if(isBrakeing) {
        if(state.brake2 >= 0.01f) {
-         vehicle->setBrake(500 * state.brake2, 2);
-         vehicle->setBrake(500 * state.brake2, 3);
+         vehicle->setBrake(type->handbrake * state.brake2, 2);
+         vehicle->setBrake(type->handbrake * state.brake2, 3);
        } else {
-         vehicle->setBrake(10 * state.brake1, 2);
-         vehicle->setBrake(10 * state.brake1, 3);
+         vehicle->setBrake(type->normalbrake * state.brake1, 2);
+         vehicle->setBrake(type->normalbrake * state.brake1, 3);
        }
      } else {
        vehicle->setBrake(0, 2);
@@ -998,11 +1001,11 @@ void PVehicle::tick(float delta)
      vehicle->applyEngineForce(drivetorque, 1);
      if(isBrakeing) {
        if(state.brake2 >= 0.01f) {
-         vehicle->setBrake(500 * state.brake2, 0);
-         vehicle->setBrake(500 * state.brake2, 1);
+         vehicle->setBrake(type->handbrake * state.brake2, 0);
+         vehicle->setBrake(type->handbrake * state.brake2, 1);
        } else {
-         vehicle->setBrake(10 * state.brake1, 0);
-         vehicle->setBrake(10 * state.brake1, 1);
+         vehicle->setBrake(type->normalbrake * state.brake1, 0);
+         vehicle->setBrake(type->normalbrake * state.brake1, 1);
        }
      } else {
        vehicle->setBrake(0, 0);

@@ -8,6 +8,25 @@ Definitive Changes:
      effective when the car is stopped (in fact, when is almost stopped, where 
      speed <= 0.5km/h);
 
+   - Vehicle's file now have the following changes:
+
+     At <pstats>, wheeldrive is now effective. It's used to define
+     which wheel will receive engine's torque (FWD: only front wheels; 
+     RWD: only rear wheels; 4WD: all 4 whells).
+     \
+      removed weightkg definition. It's now defined by the mass definition on
+      <genparams>.
+
+     At <genparams> The mass is effective and should be defined in Kg (usually
+     is). dimension is no more used, as it's now dynamic calculated by the 
+     body's 3d model.
+
+     Added <brake> definition (as a child of vehicle), with the following:
+       <brake normal="value" handbrake="value"> 
+          The brake is effective on the wheels which receive engine's
+          transmisson power. Usually, handbrake values should be greater
+          than normal brake ones.
+
 Current Changes (will need to revert them or do some work to be definitive):
    - Circuits with negative positions won't work, as I only defined the
      physical mesh to be positive and without overlaping a :1 map definition;
