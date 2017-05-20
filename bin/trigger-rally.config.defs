@@ -170,6 +170,7 @@
 			<key action="back" id="SDLK_DOWN" />
 			<key action="left" id="SDLK_LEFT" />
 			<key action="right" id="SDLK_RIGHT" />
+			<key action="brake" id="SDLK_b" />
 			<key action="handbrake" id="SDLK_SPACE" />
 			<key action="recover" id="SDLK_r" />
 			<key action="recoveratcheckpoint" id="SDLK_q" />

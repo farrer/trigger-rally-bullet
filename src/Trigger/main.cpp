@@ -459,6 +459,7 @@ void MainApp::loadConfig()
   ctrl.action_name[ActionShowUi] = std::string("showui");
   ctrl.action_name[ActionShowCheckpoint] = std::string("showcheckpoint");
   ctrl.action_name[ActionNext] = std::string("next");
+  ctrl.action_name[ActionBrake] = std::string("brake");
   
   for (int i = 0; i < ActionCount; i++) {
     ctrl.map[i].type = UserControl::TypeUnassigned;
@@ -1626,18 +1627,17 @@ void MainApp::tickStateGame(float delta)
   
   float throttletarget = 0.0f;
   float braketarget = 0.0f;
-  
-  if (ctrl.map[ActionForward].value > 0.0f) {
-    if (vehic->getSpeed() >= 0.0f)
-      throttletarget = ctrl.map[ActionForward].value;
-    else
-      braketarget = ctrl.map[ActionForward].value;
+ 
+  if(ctrl.map[ActionForward].value > 0.0f) {
+    throttletarget = ctrl.map[ActionForward].value;
   }
-  if (ctrl.map[ActionBack].value > 0.0f) {
-    if (vehic->getSpeed() < 0.0f)
-      throttletarget = -ctrl.map[ActionBack].value;
-    else
-      braketarget = ctrl.map[ActionBack].value;
+  /* Note: only start to go with backward gear if car is stoped. */
+  else if((vehic->getSpeed() <= 0.1f) && (ctrl.map[ActionBack].value > 0.0f)) {
+    throttletarget = -ctrl.map[ActionBack].value;
+  }
+
+  if(ctrl.map[ActionBrake].value > 0.0f) {
+     braketarget = ctrl.map[ActionBrake].value;
   }
   
   PULLTOWARD(vehic->ctrl.throttle, throttletarget, delta * 15.0f);

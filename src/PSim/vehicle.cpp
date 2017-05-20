@@ -961,18 +961,54 @@ void PVehicle::tick(float delta)
   
   float turnfactor = state.turn.z;// /
 
-  /* Applying engine force to the wheels, based on transmission type */
+  bool isBrakeing = (state.brake1 >= 0.01f) || (state.brake2 >= 0.01f);
+  if(isBrakeing) {
+     drivetorque = 0.0f;
+  }
+
+  //TODO: define brake values from file.
+
+  /* Applying engine force and normal brake to the wheels, 
+   * based on transmission type */
   if((type->wheeldrive == PVehicleType::WHEEL_DRIVE_TYPE_RWD) || 
      (type->wheeldrive == PVehicleType::WHEEL_DRIVE_TYPE_4WD)) {
+
      /* Rear wheels */
      vehicle->applyEngineForce(drivetorque, 2);
      vehicle->applyEngineForce(drivetorque, 3);
+     if(isBrakeing) {
+       if(state.brake2 >= 0.01f) {
+         vehicle->setBrake(500 * state.brake2, 2);
+         vehicle->setBrake(500 * state.brake2, 3);
+       } else {
+         vehicle->setBrake(10 * state.brake1, 2);
+         vehicle->setBrake(10 * state.brake1, 3);
+       }
+     } else {
+       vehicle->setBrake(0, 2);
+       vehicle->setBrake(0, 3);
+     }
+
   }
   if((type->wheeldrive == PVehicleType::WHEEL_DRIVE_TYPE_FWD) || 
      (type->wheeldrive == PVehicleType::WHEEL_DRIVE_TYPE_4WD)) {
+     
      /* Front wheels */
      vehicle->applyEngineForce(drivetorque, 0);
      vehicle->applyEngineForce(drivetorque, 1);
+     if(isBrakeing) {
+       if(state.brake2 >= 0.01f) {
+         vehicle->setBrake(500 * state.brake2, 0);
+         vehicle->setBrake(500 * state.brake2, 1);
+       } else {
+         vehicle->setBrake(10 * state.brake1, 0);
+         vehicle->setBrake(10 * state.brake1, 1);
+       }
+     } else {
+       vehicle->setBrake(0, 0);
+       vehicle->setBrake(0, 1);
+     }
+
   }
 
   /* Apply turn factor to front wheels */

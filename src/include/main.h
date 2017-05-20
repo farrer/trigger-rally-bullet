@@ -412,6 +412,7 @@ private:
     ActionShowCheckpoint,
     ActionPauseRace,
     ActionNext,
+    ActionBrake,
     ActionCount
   };
   struct {
