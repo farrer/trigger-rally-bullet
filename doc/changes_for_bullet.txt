@@ -25,7 +25,22 @@ Definitive Changes:
        <brake normal="value" handbrake="value"> 
           The brake is effective on the wheels which receive engine's
           transmisson power. Usually, handbrake values should be greater
-          than normal brake ones.
+          than normal brake ones. Default: normal=50, handbrake=500.
+
+     Added <suspension> definition (as a child of vehicle), with:
+        <suspension stiffness="value" compressionk="value"
+                    relaxationk="value" restlength="value"/>
+        \
+         stiffness: reference values: 10.0 - Offroad buggy, 50.0 - Sports car, 
+                    200.0 - F1 Car. Default: 35
+         compressionk: constant to calculate the damping coefficient for when
+                    suspension is compressed. Values from 0.1 to 0.3 are
+                    good values. Default: 0.3
+         relaxationk: constant to calculate the damping coefficient for when
+                    suspension is expanding. Sould be slightly larger than
+                    compressionk, eg: 0.2 to 0.5. Default: 0.5
+         restlength: The maximum length of the suspension (metres). 
+                    Default: 0.7
 
 Current Changes (will need to revert them or do some work to be definitive):
    - Circuits with negative positions won't work, as I only defined the

@@ -257,6 +257,17 @@ public:
   float mass; /**< Vehicle's mass */
   float normalbrake; /**< Normal (foot) brake value */
   float handbrake;   /**< Hand brake value */
+
+  /*! Suspension parameters. See function Vehicle::addWheels for 
+   * explanation of each ones. */
+  struct SuspensionInfo {
+     float stiffness;
+     float compressionk;
+     float relaxationk;
+     float restlength;
+  };
+
+  SuspensionInfo suspension;
   
   std::vector<PVehicleTypePart> part;
   

@@ -13,6 +13,12 @@
       normal="50.0"
       handbrake="500.0" />
 
+   <suspension
+      stiffness="35.0"
+      compressionk="0.3"
+      relaxationk="0.5"
+      restlength="0.7" />
+
 	<genparams
 		mass="900.0"
 		wheelmodel="cordo_kitcar_wheel.obj"
