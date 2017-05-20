@@ -632,13 +632,22 @@ void PVehicle::createBulletVehicle()
   vec3f ext = type->part[0].model->getHalfExtents() * type->part[0].scale;
   btVector3 halfExtends(ext[0], ext[1], ext[2]);
 
+
+  ext = type->wheelmodel->getHalfExtents() * type->wheelscale;
+  wheelWidth = ext[0];
+#if 0
+  wheelRadius = ext[2];
+#else
+  wheelRadius = 0.5f;
+#endif
+  wheelPerimeter = 2 * M_PI * wheelRadius;
+
   btCollisionShape* chassisShape = new btBoxShape(halfExtends);
   collisionShapes.push_back(chassisShape);
 
   /* A compound shape is used so we can easily shift the center of gravity 
    * of our vehicle to its bottom.
    * This is needed to make our vehicle more stable. */
-  //TODO: Test the vehicle without it
   btCompoundShape* compound = new btCompoundShape();
   collisionShapes.push_back(compound);
 
@@ -692,8 +701,6 @@ void PVehicle::createChassisRigidBodyFromShape(btCollisionShape* chassisShape)
 void PVehicle::addWheels(btVector3* halfExtents,
       btRaycastVehicle::btVehicleTuning tuning)
 {
-  //TODO: use vehicle's values from file.
-
   /* The direction of the raycast, the btRaycastVehicle uses raycasts instead
    * of simulating the wheels with rigid bodies */
   btVector3 wheelDirectionCS0(0, 0, -1);
@@ -703,11 +710,6 @@ void PVehicle::addWheels(btVector3* halfExtents,
 
   /* The maximum length of the suspension (metres) */
   btScalar suspensionRestLength(type->suspension.restlength);
-
-  btScalar wheelWidth(0.4);
-
-  wheelRadius = 0.5f;
-  wheelPerimeter = 2 * M_PI * wheelRadius;
 
   /* The height where the wheels are connected to the chassis */
   btScalar connectionHeight(1.2f);

@@ -472,6 +472,7 @@ private:
   /*! Collision shapes of the vehicle (ie: chassis, wheels) */
   btAlignedObjectArray<btCollisionShape*> collisionShapes;
   btDefaultMotionState* chassisMotionState; /**< Motion state for chassis */
+  btScalar wheelWidth;     /**< Current wheel width */
   btScalar wheelRadius;    /**< Current wheel radius */
   btScalar wheelPerimeter; /**< wheelRadius * 2 * M_PI */
 
