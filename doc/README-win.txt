@@ -15,9 +15,10 @@ Trigger Rally ReadMe for Windows
     KEY             ACTION
     ----------------------
     Up Arrow        accelerate
-    Down Arrow      brake/reverse
+    Down Arrow      reverse
     Left Arrow      steer left
     Right Arrow     steer right
+    B               brake
     Space           handbrake
     R               recover car
     Q               recover car at last checkpoint

@@ -29,9 +29,10 @@ Defaults:
 
  key     action
 Up      Accelerate
-Down    Foot brake / Reverse
+Down    Reverse
 Left    Steer left
 Right   Steer right
+B       Foot brake
 Space   Handbrake
 C       Change camera view
 M       Toggle map
