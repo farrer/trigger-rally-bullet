@@ -2,22 +2,22 @@ In this file I'll (farrer) keep track of the changes for configurations,
 vehicles or track files needed for the the Bullet Physics Trigger Rally.
 
 Definitive Changes:
-   - Defined a new action map for brake, instead of using the back action
-     sometimes to go backward, sometimes to brake. The back action will now
-     only goes backward and will only start to be effective when the car is
-     stopped (in fact, when almost is stopped, where speed <= 0.5km/h);
-   - With the port of the DrivingSystemInstance to work with the values
-     instead of the wrong one's from previous physics implementation, probably
-     the cars engine will act somewhat different. I'm currently tested with
-     Cordo KitCar (and it's acting like a KitCar, rarely going near
-     100-120km/h). Will check latter the other ones;
+   - Defined a new action map for brake, instead of the previous way of using 
+     the 'back action' sometimes to go backward, sometimes to brake. The back 
+     action will now only do backward input and will only start to be 
+     effective when the car is stopped (in fact, when is almost stopped, where 
+     speed <= 0.5km/h);
 
 Current Changes (will need to revert them or do some work to be definitive):
    - Circuits with negative positions won't work, as I only defined the
      physical mesh to be positive and without overlaping a :1 map definition;
    - For the same reason, the car will fall under rendered terrain on 
-     positions negative or greater than the defined for the image;
-
+     positions negative or greater than the defined for the terrain size;
+   - With the port of the DrivingSystemInstance to work with the values from
+     Bullet instead of the wrong ones from previous physics implementation, 
+     probably the cars engine will act somewhat different. I've tested only
+     with Cordo KitCar (and it's acting like a KitCar, rarely going near
+     100-120km/h). Will check latter the other ones;
 
 Currently Broken (will probably fix them) :
    - Car height position is broken. It's easy to fix, but will do that
