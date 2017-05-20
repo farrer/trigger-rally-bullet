@@ -43,7 +43,6 @@ set(PENGINE_LIB_SOURCES
 set(PSIM_LIB_SOURCES
    src/PSim/bulletdebugdraw.cpp
    src/PSim/bulletlink.cpp
-   src/PSim/rigidbody.cpp
    src/PSim/sim.cpp
    src/PSim/vehicle.cpp
 )
