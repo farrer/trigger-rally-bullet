@@ -900,7 +900,7 @@ void MainApp::renderStateGame(float eyetranslation)
 
                     glPushMatrix(); // 1
 
-                    vec3f wpos = vehic->part[i].wheel[j].ref_world.getPosition();
+                    vec3f wpos = vehic->part[i].wheel[j].pos;
                     glTranslatef(wpos.x,wpos.y,wpos.z);
 
                     mat44f vorim = vehic->part[i].ref_world.ori_mat_inv;

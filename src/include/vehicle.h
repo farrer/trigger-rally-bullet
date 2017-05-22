@@ -304,14 +304,9 @@ public:
 
 
 struct PVehicleWheel {
-  float ride_pos, ride_vel; // ride = suspension travel
-  float spin_pos, spin_vel; // spin = driving axis rotation
-  float turn_pos; // turn = steering axis rotation
-
   float steering;  /**< Direction angle in degrees */
   float rotation;  /**< Spinning angle in degrees */
-  
-  PReferenceFrame ref_world;
+  vec3f pos;       /**< Wheel position */
   
   float skidding, dirtthrow;
   vec3f dirtthrowpos, dirtthrowvec;
@@ -319,11 +314,6 @@ struct PVehicleWheel {
   float bumplast, bumpnext, bumptravel;
   
   PVehicleWheel() {
-    ride_pos = 0.0f;
-    ride_vel = 0.0f;
-    spin_pos = 0.0f;
-    spin_vel = 0.0f;
-    turn_pos = 0.0f;
     bumplast = 0.0f;
     bumpnext = 0.0f;
     bumptravel = 0.0f;

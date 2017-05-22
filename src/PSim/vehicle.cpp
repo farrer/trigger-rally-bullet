@@ -610,7 +610,7 @@ PVehicle::PVehicle(PSim &sim_parent, PVehicleType *_type) :
     part[i].wheel.resize(type->part[i].wheel.size());
     
     for (unsigned int j=0; j<part[i].wheel.size(); j++) {
-      part[i].wheel[j].ref_world.setPosition(vec3f(0,0,1000000)); // FIXME!!!
+      part[i].wheel[j].pos = vec3f(0.0f, 0.0f, 0.0f);
     }
   }
   
@@ -803,19 +803,17 @@ void PVehicle::doReset()
   
   crunch_level = 0.0f;
   crunch_level_prev = 0.0f;
+#endif
   
   for (unsigned int i=0; i<part.size(); i++) {
     for (unsigned int j=0; j<part[i].wheel.size(); j++) {
-      part[i].wheel[j].spin_vel = 0.0f;
-      part[i].wheel[j].spin_pos = 0.0f;
-      part[i].wheel[j].ride_vel = 0.0f;
-      part[i].wheel[j].ride_pos = 0.0f;
-      part[i].wheel[j].turn_pos = 0.0f;
+      part[i].wheel[j].steering = 0.0f;
+      part[i].wheel[j].rotation = 0.0f;
       part[i].wheel[j].skidding = 0.0f;
       part[i].wheel[j].dirtthrow = 0.0f;
     }
   }  
-#endif
+
   dsysi.doReset();
   
   state.setZero();
@@ -840,18 +838,15 @@ void PVehicle::doReset2(const vec3f &pos, const quatf &ori)
   crunch_level = 0.0f;
   crunch_level_prev = 0.0f;
 
+#endif
   for (unsigned int i=0; i<part.size(); i++) {
     for (unsigned int j=0; j<part[i].wheel.size(); j++) {
-      part[i].wheel[j].spin_vel = 0.0f;
-      part[i].wheel[j].spin_pos = 0.0f;
-      part[i].wheel[j].ride_vel = 0.0f;
-      part[i].wheel[j].ride_pos = 0.0f;
-      part[i].wheel[j].turn_pos = 0.0f;
+      part[i].wheel[j].steering = 0.0f;
+      part[i].wheel[j].rotation = 0.0f;
       part[i].wheel[j].skidding = 0.0f;
       part[i].wheel[j].dirtthrow = 0.0f;
     }
   }
-#endif
 
   dsysi.doReset();
 
@@ -1348,7 +1343,7 @@ bool PVehicle::canHaveDustTrail()
         {
             PVehicleWheel &wheel = part[i].wheel[j];
             PVehicleTypeWheel &typewheel = type->part[i].wheel[j];
-            vec3f wclip = wheel.ref_world.getPosition();
+            vec3f wclip = wheel.pos;
 
             // TODO: calc wclip along wheel plane instead of just straight down
             wclip.z -= typewheel.radius;
@@ -1392,10 +1387,9 @@ void PVehicle::updateParts()
       parent->getOrientationMatrix().transform1(part[i].ref_local.pos);
     
     for (unsigned int j=0; j<part[i].wheel.size(); j++) {
-      vec3f locpos = type->part[i].wheel[j].pt +
-            vec3f(0.0f, 0.0f, part[i].wheel[j].ride_pos);
+      vec3f locpos = type->part[i].wheel[j].pt;
       
-      part[i].wheel[j].ref_world.setPosition(part[i].ref_world.getLocToWorldPoint(locpos));
+      part[i].wheel[j].pos = part[i].ref_world.getLocToWorldPoint(locpos);
       
       /* Set wheel spinning and steering in degrees (note: bullet values is 
        * in radians) */
@@ -1403,13 +1397,6 @@ void PVehicle::updateParts()
          (M_PI * 2) * 360.0f;
       part[i].wheel[j].rotation = -vehicle->getWheelInfo(j).m_rotation / 
          (M_PI * 2) * 360.0f;
-      quatf turnang(0.0f, 0.0f, 
-            -vehicle->getWheelInfo(i).m_steering * M_PI / 2.0f);
-      quatf spinang(0.0f, vehicle->getWheelInfo(i).m_rotation, 0.0f);
-      
-      part[i].wheel[j].ref_world.ori = spinang * turnang * part[i].ref_world.ori;
-      
-      part[i].wheel[j].ref_world.updateMatrices();
     }
   }
 }
