@@ -314,6 +314,13 @@ struct PVehicleWheel {
   float bumplast, bumpnext, bumptravel;
   
   PVehicleWheel() {
+    reset();
+  }
+
+  void reset() {
+    rotation = 0.0f;
+    steering = 0.0f;
+    pos = vec3f(0.0f, 0.0f, 0.0f);
     bumplast = 0.0f;
     bumpnext = 0.0f;
     bumptravel = 0.0f;

@@ -608,10 +608,6 @@ PVehicle::PVehicle(PSim &sim_parent, PVehicleType *_type) :
     part[i].ref_local = type->part[i].ref_local;
     
     part[i].wheel.resize(type->part[i].wheel.size());
-    
-    for (unsigned int j=0; j<part[i].wheel.size(); j++) {
-      part[i].wheel[j].pos = vec3f(0.0f, 0.0f, 0.0f);
-    }
   }
   
   updateParts();
@@ -807,10 +803,7 @@ void PVehicle::doReset()
   
   for (unsigned int i=0; i<part.size(); i++) {
     for (unsigned int j=0; j<part[i].wheel.size(); j++) {
-      part[i].wheel[j].steering = 0.0f;
-      part[i].wheel[j].rotation = 0.0f;
-      part[i].wheel[j].skidding = 0.0f;
-      part[i].wheel[j].dirtthrow = 0.0f;
+      part[i].wheel[j].reset();
     }
   }  
 
@@ -841,10 +834,7 @@ void PVehicle::doReset2(const vec3f &pos, const quatf &ori)
 #endif
   for (unsigned int i=0; i<part.size(); i++) {
     for (unsigned int j=0; j<part[i].wheel.size(); j++) {
-      part[i].wheel[j].steering = 0.0f;
-      part[i].wheel[j].rotation = 0.0f;
-      part[i].wheel[j].skidding = 0.0f;
-      part[i].wheel[j].dirtthrow = 0.0f;
+      part[i].wheel[j].reset();
     }
   }
 
