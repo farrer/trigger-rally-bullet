@@ -1840,9 +1840,9 @@ void MainApp::tickStateGame(float delta)
 
     const mat44f &rfmat = rf.getInverseOrientationMatrix();
     //campos = rf.getPosition() + makevec3f(cammat.row[2]) * 100.0;
-    campos = rf.getPosition() +
-      makevec3f(rfmat.row[1]) * 0.50f +
-      makevec3f(rfmat.row[2]) * 0.85f;
+    campos = rf.getPosition() -
+      makevec3f(rfmat.row[1]) * 0.08f +
+      makevec3f(rfmat.row[2]) * 0.9f;
     } break;
 
     // Periscope view
@@ -1863,8 +1863,8 @@ void MainApp::tickStateGame(float delta)
 
     const mat44f &rfmat = rf.getInverseOrientationMatrix();
     //campos = rf.getPosition() + makevec3f(cammat.row[2]) * 100.0;
-    campos = rf.getPosition() +
-      makevec3f(rfmat.row[1]) * 1.7f +
+    campos = rf.getPosition() -
+      makevec3f(rfmat.row[1]) * 5.7f +
       makevec3f(rfmat.row[2]) * 5.0f;
     } break;
     
