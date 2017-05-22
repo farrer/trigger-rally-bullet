@@ -520,7 +520,7 @@ void PTerrain::createBulletStructures() {
   //FIXME: test restitution and friction values to set which ones are
   //good for trigger. Maybe friction could be track specific.
   info.m_restitution = 0.8f;
-  info.m_friction = 0.8f;
+  info.m_friction = 0.2f;
 
   rigidBody = new btRigidBody(info);
   BulletLink::addRigidBody(rigidBody);
