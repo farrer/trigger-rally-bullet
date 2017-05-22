@@ -23,9 +23,10 @@ Definitive Changes:
 
      Added <brake> definition (as a child of vehicle), with the following:
        <brake normal="value" handbrake="value"> 
-          The brake is effective on the wheels which receive engine's
-          transmisson power. Usually, handbrake values should be greater
-          than normal brake ones. Default: normal=50, handbrake=500.
+          The normal brake is effective on the wheels which receive engine's
+          transmisson power. Handbrake will affect rear wheels. Usually, 
+          handbrake values should be greater than normal brake ones. 
+          Default: normal=50, handbrake=500.
 
      Added <suspension> definition (as a child of vehicle), with:
         <suspension stiffness="value" compressionk="value"

@@ -1004,19 +1004,6 @@ void PVehicle::tick(float delta)
      /* Rear wheels */
      vehicle->applyEngineForce(drivetorque, 2);
      vehicle->applyEngineForce(drivetorque, 3);
-     if(isBrakeing) {
-       if(state.brake2 >= 0.01f) {
-         vehicle->setBrake(type->handbrake * state.brake2, 2);
-         vehicle->setBrake(type->handbrake * state.brake2, 3);
-       } else {
-         vehicle->setBrake(type->normalbrake * state.brake1, 2);
-         vehicle->setBrake(type->normalbrake * state.brake1, 3);
-       }
-     } else {
-       vehicle->setBrake(0, 2);
-       vehicle->setBrake(0, 3);
-     }
-
   }
   if((type->wheeldrive == PVehicleType::WHEEL_DRIVE_TYPE_FWD) || 
      (type->wheeldrive == PVehicleType::WHEEL_DRIVE_TYPE_4WD)) {
@@ -1024,19 +1011,33 @@ void PVehicle::tick(float delta)
      /* Front wheels */
      vehicle->applyEngineForce(drivetorque, 0);
      vehicle->applyEngineForce(drivetorque, 1);
-     if(isBrakeing) {
-       if(state.brake2 >= 0.01f) {
-         vehicle->setBrake(type->handbrake * state.brake2, 0);
-         vehicle->setBrake(type->handbrake * state.brake2, 1);
-       } else {
-         vehicle->setBrake(type->normalbrake * state.brake1, 0);
-         vehicle->setBrake(type->normalbrake * state.brake1, 1);
-       }
-     } else {
-       vehicle->setBrake(0, 0);
-       vehicle->setBrake(0, 1);
-     }
+  }
 
+  /* Apply Brakes */
+  if(isBrakeing) {
+    if(state.brake2 >= 0.01f) {
+      /* Hand brake is always applied on rear wheels */
+      vehicle->setBrake(type->handbrake * state.brake2, 2);
+      vehicle->setBrake(type->handbrake * state.brake2, 3);
+    } else {
+      /* Normal brake is applied on transmission wheels */
+      if((type->wheeldrive == PVehicleType::WHEEL_DRIVE_TYPE_RWD) || 
+         (type->wheeldrive == PVehicleType::WHEEL_DRIVE_TYPE_4WD)) {
+        vehicle->setBrake(type->normalbrake * state.brake1, 0);
+        vehicle->setBrake(type->normalbrake * state.brake1, 1);
+      }
+      if((type->wheeldrive == PVehicleType::WHEEL_DRIVE_TYPE_FWD) || 
+         (type->wheeldrive == PVehicleType::WHEEL_DRIVE_TYPE_4WD)) {
+        vehicle->setBrake(type->normalbrake * state.brake1, 0);
+        vehicle->setBrake(type->normalbrake * state.brake1, 1);
+      }
+    }
+  } else {
+    /* No brake applied */
+    vehicle->setBrake(0, 0);
+    vehicle->setBrake(0, 1);
+    vehicle->setBrake(0, 2);
+    vehicle->setBrake(0, 3);
   }
 
   /* Apply turn factor to front wheels */
