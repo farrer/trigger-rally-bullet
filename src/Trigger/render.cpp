@@ -614,7 +614,7 @@ glMatrixMode(GL_PROJECTION);
                     vec3f &wpos = vtype->part[i].wheel[j].pt;
                     glTranslatef(wpos.x, wpos.y, wpos.z);
 
-                    float scale = vtype->wheelscale * vtype->part[i].wheel[j].radius;
+                    float scale = vtype->part[i].wheel[j].scale;
                     glScalef(scale,scale,scale);
 
                     drawModel(*vtype->wheelmodel);
@@ -879,11 +879,11 @@ void MainApp::renderStateGame(float eyetranslation)
             {
                 glPushMatrix(); // 1
 
-                vec3f vpos = vehic->part[i].ref_world.pos;
-                glTranslatef(vpos.x, vpos.y, vpos.z);
-
-                mat44f vorim = vehic->part[i].ref_world.ori_mat_inv;
-                glMultMatrixf(vorim);
+                btScalar glMat[16];
+                vehic->getChassisWorldTransform().getOpenGLMatrix(glMat);
+                glMultMatrixf(glMat);
+                glTranslatef(0.0f, 0.0f, 
+                      vehic->getChassisDiff() - vehic->getWheelRadius(i));
 
                 float scale = vehic->type->part[i].scale;
                 glScalef(scale,scale,scale);
@@ -900,17 +900,11 @@ void MainApp::renderStateGame(float eyetranslation)
 
                     glPushMatrix(); // 1
 
-                    vec3f wpos = vehic->part[i].wheel[j].pos;
-                    glTranslatef(wpos.x,wpos.y,wpos.z);
+                    btScalar glMat[16];
+                    vehic->part[i].wheel[j].worldtrans.getOpenGLMatrix(glMat);
+                    glMultMatrixf(glMat);
 
-                    mat44f vorim = vehic->part[i].ref_world.ori_mat_inv;
-                    glMultMatrixf(vorim);
-                    glRotatef(vehic->part[i].wheel[j].steering, 
-                          0.0f, 0.0f, 1.0f);
-                    glRotatef(vehic->part[i].wheel[j].rotation,
-                          1.0f, 0.0f, 0.0f);
-
-                    float scale = vehic->type->wheelscale * vehic->type->part[i].wheel[j].radius;
+                    float scale = vehic->getWheelScaleFactor(j);
                     glScalef(scale,scale,scale);
 
                     drawModel(*vehic->type->wheelmodel);

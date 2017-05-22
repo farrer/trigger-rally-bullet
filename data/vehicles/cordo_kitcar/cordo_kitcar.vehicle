@@ -21,8 +21,7 @@
 
 	<genparams
 		mass="900.0"
-		wheelmodel="cordo_kitcar_wheel.obj"
-		wheelscale="0.033" />
+		wheelmodel="cordo_kitcar_wheel.obj" />
 	
 	<ctrlparams
 		speedrate="15.0"
@@ -53,10 +52,10 @@
 		model="cordo_kitcar.obj"
 		scale="0.01">
 		
-		<wheel drive="1.0" steer="0.85" brake1="200.0" pos="0.63, 0.87, -0.17" radius="0.3" force="45000.0" dampening="20000.0" />
-		<wheel drive="1.0" steer="0.85" brake1="200.0" pos="-0.63, 0.87, -0.17" radius="0.3" force="45000.0" dampening="20000.0" />
-		<wheel drive="0.0" steer="0.0" brake1="100.0" pos="0.63, -1.27, -0.17" radius="0.3" force="45000.0" dampening="20000.0" brake2="1000.0" />
-		<wheel drive="0.0" steer="0.0" brake1="100.0" pos="-0.63, -1.27, -0.17" radius="0.3" force="45000.0" dampening="20000.0" brake2="1000.0" />
+		<wheel scale="0.01" steer="0.85" pos="0.63, 0.87, -0.17" />
+		<wheel scale="0.01" steer="0.85" pos="-0.63, 0.87, -0.17" />
+		<wheel scale="0.01" pos="0.63, -1.27, -0.17" />
+		<wheel scale="0.01" pos="-0.63, -1.27, -0.17" />
 		
 		<clip type="body" pos="1.0, 1.5, 1.0" force="300000.0" dampening="30000.0" />
 		<clip type="body" pos="-1.0, 1.5, 1.0" force="300000.0" dampening="30000.0" />

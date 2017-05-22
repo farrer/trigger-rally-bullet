@@ -20,6 +20,17 @@ Definitive Changes:
      At <genparams> The mass is effective and should be defined in Kg (usually
      is). dimension is no more used, as it's now dynamic calculated by the 
      body's 3d model.
+     \
+      There's no more wheelscale parameter inside this section. The scale
+      should be defined for each wheel.
+
+     Each <wheel> should be defined with exact ordering, front-right,
+     front-left, rear-right, rear-left, and have only the following parameters:
+       <wheel scale="value" pos="x, y, z" />
+       \
+        scale: is the total scale of the wheel. To convert from old
+               definitions, calculate the value by the old wheelscale * radius.
+        pos: wheel position, defined exactly as it was.
 
      Added <brake> definition (as a child of vehicle), with the following:
        <brake normal="value" handbrake="value"> 

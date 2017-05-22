@@ -208,9 +208,7 @@ struct vehicle_clip_s {
 
 struct PVehicleTypeWheel {
   vec3f pt;
-  float radius;
-  float drive, steer, brake1, brake2;
-  float force, dampening;
+  float scale;
 };
 
 
@@ -271,7 +269,6 @@ public:
   
   std::vector<PVehicleTypePart> part;
   
-  float wheelscale;
   PModel *wheelmodel;
   
   PDriveSystem dsys;
@@ -304,9 +301,7 @@ public:
 
 
 struct PVehicleWheel {
-  float steering;  /**< Direction angle in degrees */
-  float rotation;  /**< Spinning angle in degrees */
-  vec3f pos;       /**< Wheel position */
+  btTransform worldtrans;
   
   float skidding, dirtthrow;
   vec3f dirtthrowpos, dirtthrowvec;
@@ -318,9 +313,7 @@ struct PVehicleWheel {
   }
 
   void reset() {
-    rotation = 0.0f;
-    steering = 0.0f;
-    pos = vec3f(0.0f, 0.0f, 0.0f);
+    worldtrans = btTransform();
     bumplast = 0.0f;
     bumpnext = 0.0f;
     bumptravel = 0.0f;
@@ -403,6 +396,22 @@ public:
 
   /*! \return current reference frame */
   PReferenceFrame getReferenceFrame() { return curReference; };
+
+  /*! \return scale factor to apply to the wheel model to render it
+   * at the desired size */
+  const float getWheelScaleFactor(int i) const;
+  
+  /*! \return real world radius of a wheel */
+  const float getWheelRadius(int i) const;
+
+  /*! \return chassis world transform */
+  const btTransform getChassisWorldTransform() const 
+  { 
+     return vehicle->getChassisWorldTransform(); 
+  };
+
+  /*! \return chassis center of mass difference to the geometric center */
+  const float getChassisDiff() const { return 1.0f; };
 
   /*! Force a the debug draw of bullet's representation of this vehicle */
   void debugDraw();

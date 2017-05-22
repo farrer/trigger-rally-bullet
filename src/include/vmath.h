@@ -107,6 +107,7 @@ public:
   vec3 (T _x, T _y, T _z) { x=_x; y=_y; z=_z; }
   vec3 (const vec3<T> &vec) { x=vec.x; y=vec.y; z=vec.z; }
   vec3 (const T *vecptr) { x=vecptr[0]; y=vecptr[1]; z=vecptr[2]; }
+  vec3 (const btVector3& vec) { x = vec[0]; y=vec[1]; z=vec[2]; };
 
   T &operator [] (int i) { return (&x)[i]; }
   operator const T* () const { return &x; }

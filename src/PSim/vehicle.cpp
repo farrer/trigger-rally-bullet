@@ -41,7 +41,7 @@ void PDriveSystemInstance::tick(float delta, float throttle, float wheel_rps)
    * for the wheel revolutions per second (very high ones). Thus, to not
    * break the PDriveInstance or have to rewrite it from scratch, this
    * correction_multiplier is used. */
-  const float correction_multiplier = 20.0f;
+  const float correction_multiplier = 14.0f;
   wheel_rps *= correction_multiplier;
 
   rps = wheel_rps * dsys->gear[currentgear].y;
@@ -101,7 +101,7 @@ void PDriveSystemInstance::tick(float delta, float throttle, float wheel_rps)
     }
   }
 
-  out_torque *= throttle * correction_multiplier / 2.0f;
+  out_torque *= throttle * correction_multiplier * 0.5f;
   
   if (reverse) {
     out_torque *= -1.0;
@@ -141,7 +141,6 @@ bool PVehicleType::load(const std::string &filename, PSSModel &ssModel)
   suspension.relaxationk = 0.5f;
   suspension.restlength = 0.7f;
   
-  wheelscale = 1.0;
   wheelmodel = nullptr;
   
   ctrlrate.setDefaultRates();
@@ -261,9 +260,6 @@ bool PVehicleType::load(const std::string &filename, PSSModel &ssModel)
          mass = atof(val);
       }
 
-      val = walk->Attribute("wheelscale");
-      if (val) wheelscale = atof(val);
-      
       val = walk->Attribute("wheelmodel");
       if (val) wheelmodel = ssModel.loadModel(PUtil::assemblePath(val, filename));
       
@@ -449,14 +445,7 @@ bool PVehicleType::load(const std::string &filename, PSSModel &ssModel)
         } else if (!strcmp(walk2->Value(), "wheel")) {
           PVehicleTypeWheel vtw;
           
-          vtw.radius = 1.0f;
-          vtw.drive = 0.0f;
-          vtw.steer = 0.0f;
-          vtw.brake1 = 0.0f;
-          vtw.brake2 = 0.0f;
-          
-          vtw.force = 0.0f;
-          vtw.dampening = 0.0f;
+          vtw.scale = 1.0f;
           
           val = walk2->Attribute("pos");
           if (!val) {
@@ -467,29 +456,10 @@ bool PVehicleType::load(const std::string &filename, PSSModel &ssModel)
           sscanf(val, "%f , %f , %f", &vtw.pt.x, &vtw.pt.y, &vtw.pt.z);
           vtw.pt *= allscale;
           
-          val = walk2->Attribute("radius");
-          if (val) vtw.radius = atof(val);
-          
-          val = walk2->Attribute("drive");
-          if (val) vtw.drive = atof(val);
-          
-          val = walk2->Attribute("steer");
-          if (val) vtw.steer = atof(val);
-          
-          val = walk2->Attribute("brake1");
-          if (val) vtw.brake1 = atof(val);
-          
-          val = walk2->Attribute("brake2");
-          if (val) vtw.brake2 = atof(val);
-          
-          val = walk2->Attribute("force");
-          if (val) vtw.force = atof(val);
-          
-          val = walk2->Attribute("dampening");
-          if (val) vtw.dampening = atof(val);
+          val = walk2->Attribute("scale");
+          if (val) vtw.scale = atof(val);
           
           vtp->wheel.push_back(vtw);
-          drive_total += vtw.drive;
         } else if (!strcmp(walk2->Value(), "jetflame")) {
           vtp->flame.push_back(PReferenceFrame());
           
@@ -625,17 +595,15 @@ void PVehicle::debugDraw()
 
 void PVehicle::createBulletVehicle()
 {
+  /* Define body sizes */
   vec3f ext = type->part[0].model->getHalfExtents() * type->part[0].scale;
   btVector3 halfExtends(ext[0], ext[1], ext[2]);
 
-
-  ext = type->wheelmodel->getHalfExtents() * type->wheelscale;
+  /* define wheel sizes */
+  //FIXME should be from wheel definition and one per wheel.
+  ext = type->wheelmodel->getHalfExtents() * getWheelScaleFactor(0);
   wheelWidth = ext[0];
-#if 0
   wheelRadius = ext[2];
-#else
-  wheelRadius = 0.5f;
-#endif
   wheelPerimeter = 2 * M_PI * wheelRadius;
 
   btCollisionShape* chassisShape = new btBoxShape(halfExtends);
@@ -653,7 +621,7 @@ void PVehicle::createBulletVehicle()
    * gravity keeping it under our chassis, and not in the middle of it */
   btTransform localTransform;
   localTransform.setIdentity();
-  localTransform.setOrigin(btVector3(0.0f, 0.0f, 1.0f));
+  localTransform.setOrigin(btVector3(0.0f, 0.0f, getChassisDiff()));
   compound->addChildShape(localTransform, chassisShape);
 
   createChassisRigidBodyFromShape(compound);
@@ -678,7 +646,7 @@ void PVehicle::createChassisRigidBodyFromShape(btCollisionShape* chassisShape)
 {
   btTransform chassisTransform;
   chassisTransform.setIdentity();
-  chassisTransform.setOrigin(btVector3(0.0f, 0.0f, 1.0f));
+  chassisTransform.setOrigin(btVector3(0.0f, 0.0f, getChassisDiff()));
 
   /* Calculate its local inertia */
   btVector3 localInertia(0, 0, 0);
@@ -710,25 +678,25 @@ void PVehicle::addWheels(btVector3* halfExtents,
   /* The height where the wheels are connected to the chassis */
   btScalar connectionHeight(1.2f);
 
-  /* All the wheel configuration assumes the vehicle is centered at the 
-   * origin and a right handed coordinate system is used */
-  btVector3 wheelConnectionPoint(halfExtents->x() - wheelRadius, 
-        halfExtents->y() - wheelWidth,  connectionHeight);
-
   /* Adds the front wheels */
-  vehicle->addWheel(wheelConnectionPoint, wheelDirectionCS0, wheelAxleCS, 
+  vec3f pos = type->part[0].wheel[0].pt; 
+  vehicle->addWheel(btVector3(pos[0], pos[1], connectionHeight), 
+        wheelDirectionCS0, wheelAxleCS, 
         suspensionRestLength, wheelRadius, tuning, true);
 
-  vehicle->addWheel(wheelConnectionPoint * btVector3(-1, 1, 1), 
+  pos = type->part[0].wheel[1].pt; 
+  vehicle->addWheel(btVector3(pos[0], pos[1], connectionHeight), 
         wheelDirectionCS0, wheelAxleCS, suspensionRestLength, wheelRadius,
         tuning, true);
 
   /* Adds the rear wheels */
-  vehicle->addWheel(wheelConnectionPoint* btVector3(1, -1, 1),
+  pos = type->part[0].wheel[2].pt; 
+  vehicle->addWheel(btVector3(pos[0], pos[1], connectionHeight), 
         wheelDirectionCS0, wheelAxleCS, suspensionRestLength, wheelRadius,
         tuning, false);
 
-  vehicle->addWheel(wheelConnectionPoint * btVector3(-1, -1, 1), 
+  pos = type->part[0].wheel[3].pt; 
+  vehicle->addWheel(btVector3(pos[0], pos[1], connectionHeight), 
         wheelDirectionCS0, wheelAxleCS, suspensionRestLength, wheelRadius,
         tuning, false); 
 
@@ -777,6 +745,18 @@ float PVehicle::getWheelAngularSpeed(float delta) const
   return KPH_TO_MPS(getSpeed()) / wheelPerimeter;
 }
 
+const float PVehicle::getWheelScaleFactor(int i) const
+{
+   assert((i >= 0) && (i <=3));
+   return type->part[0].wheel[i].scale;
+}
+
+const float PVehicle::getWheelRadius(int i) const
+{
+   //FIXME
+   assert((i >= 0) && (i <=3));
+   return wheelRadius;
+}
 
 void PVehicle::doReset()
 {
@@ -866,7 +846,8 @@ void PVehicle::tick(float delta)
 {
   /* Retrieve current position and orientation from bullet */
   btVector3 vPos(vehicle->getRigidBody()->getCenterOfMassPosition());
-  curReference.pos = vec3f(vPos[0], vPos[1], vPos[2]);
+  curReference.pos = vec3f(vPos[0], vPos[1], 
+        vPos[2] + getChassisDiff() - getWheelRadius(0));
   
   btQuaternion vOri(
         vehicle->getRigidBody()->getCenterOfMassTransform().getRotation());
@@ -1332,11 +1313,12 @@ bool PVehicle::canHaveDustTrail()
         for (unsigned int j=0; j<type->part[i].wheel.size(); ++j)
         {
             PVehicleWheel &wheel = part[i].wheel[j];
-            PVehicleTypeWheel &typewheel = type->part[i].wheel[j];
-            vec3f wclip = wheel.pos;
+            //PVehicleTypeWheel &typewheel = type->part[i].wheel[j];
+            vec3f wclip(wheel.worldtrans.getOrigin());
 
             // TODO: calc wclip along wheel plane instead of just straight down
-            wclip.z -= typewheel.radius;
+            //wclip.z -= typewheel.radius;
+            wclip.z -= wheelRadius;
 
             wclip.z += INTERP(wheel.bumplast, wheel.bumpnext, wheel.bumptravel);
 
@@ -1361,7 +1343,6 @@ void PVehicle::updateParts()
   if(!vehicle) {
     return;
   }
-  //TODO: use values from bullet (specially for wheels).
   for (unsigned int i=0; i<part.size(); ++i) {
     PReferenceFrame *parent;
     if (type->part[i].parent > -1)
@@ -1377,16 +1358,7 @@ void PVehicle::updateParts()
       parent->getOrientationMatrix().transform1(part[i].ref_local.pos);
     
     for (unsigned int j=0; j<part[i].wheel.size(); j++) {
-      vec3f locpos = type->part[i].wheel[j].pt;
-      
-      part[i].wheel[j].pos = part[i].ref_world.getLocToWorldPoint(locpos);
-      
-      /* Set wheel spinning and steering in degrees (note: bullet values is 
-       * in radians) */
-      part[i].wheel[j].steering = vehicle->getWheelInfo(j).m_steering / 
-         (M_PI * 2) * 360.0f;
-      part[i].wheel[j].rotation = -vehicle->getWheelInfo(j).m_rotation / 
-         (M_PI * 2) * 360.0f;
+      part[i].wheel[j].worldtrans = vehicle->getWheelInfo(j).m_worldTransform;
     }
   }
 }
