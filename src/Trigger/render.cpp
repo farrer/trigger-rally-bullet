@@ -903,8 +903,12 @@ void MainApp::renderStateGame(float eyetranslation)
                     vec3f wpos = vehic->part[i].wheel[j].ref_world.getPosition();
                     glTranslatef(wpos.x,wpos.y,wpos.z);
 
-                    mat44f worim = vehic->part[i].wheel[j].ref_world.ori_mat_inv;
-                    glMultMatrixf(worim);
+                    mat44f vorim = vehic->part[i].ref_world.ori_mat_inv;
+                    glMultMatrixf(vorim);
+                    glRotatef(vehic->part[i].wheel[j].steering, 
+                          0.0f, 0.0f, 1.0f);
+                    glRotatef(vehic->part[i].wheel[j].rotation,
+                          1.0f, 0.0f, 0.0f);
 
                     float scale = vehic->type->wheelscale * vehic->type->part[i].wheel[j].radius;
                     glScalef(scale,scale,scale);

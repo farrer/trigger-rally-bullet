@@ -1373,6 +1373,9 @@ bool PVehicle::canHaveDustTrail()
 
 void PVehicle::updateParts()
 {
+  if(!vehicle) {
+    return;
+  }
   //TODO: use values from bullet (specially for wheels).
   for (unsigned int i=0; i<part.size(); ++i) {
     PReferenceFrame *parent;
@@ -1394,8 +1397,15 @@ void PVehicle::updateParts()
       
       part[i].wheel[j].ref_world.setPosition(part[i].ref_world.getLocToWorldPoint(locpos));
       
-      quatf turnang(0.0f, 0.0f, part[i].wheel[j].turn_pos);
-      quatf spinang(part[i].wheel[j].spin_pos, 0.0f, 0.0f);
+      /* Set wheel spinning and steering in degrees (note: bullet values is 
+       * in radians) */
+      part[i].wheel[j].steering = vehicle->getWheelInfo(j).m_steering / 
+         (M_PI * 2) * 360.0f;
+      part[i].wheel[j].rotation = -vehicle->getWheelInfo(j).m_rotation / 
+         (M_PI * 2) * 360.0f;
+      quatf turnang(0.0f, 0.0f, 
+            -vehicle->getWheelInfo(i).m_steering * M_PI / 2.0f);
+      quatf spinang(0.0f, vehicle->getWheelInfo(i).m_rotation, 0.0f);
       
       part[i].wheel[j].ref_world.ori = spinang * turnang * part[i].ref_world.ori;
       

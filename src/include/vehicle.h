@@ -307,6 +307,9 @@ struct PVehicleWheel {
   float ride_pos, ride_vel; // ride = suspension travel
   float spin_pos, spin_vel; // spin = driving axis rotation
   float turn_pos; // turn = steering axis rotation
+
+  float steering;  /**< Direction angle in degrees */
+  float rotation;  /**< Spinning angle in degrees */
   
   PReferenceFrame ref_world;
   
