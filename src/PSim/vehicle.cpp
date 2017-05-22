@@ -458,6 +458,9 @@ bool PVehicleType::load(const std::string &filename, PSSModel &ssModel)
           
           val = walk2->Attribute("scale");
           if (val) vtw.scale = atof(val);
+
+          val = walk2->Attribute("friction");
+          if (val) vtw.friction = atof(val);
           
           vtp->wheel.push_back(vtw);
         } else if (!strcmp(walk2->Value(), "jetflame")) {
@@ -619,9 +622,10 @@ void PVehicle::createBulletVehicle()
    * rigidbody to the compound shape it's center of gravity does not change.
    * This way we can add the chassis rigidbody one unit above our center of
    * gravity keeping it under our chassis, and not in the middle of it */
+  chassisDiff = 1.0f;
   btTransform localTransform;
   localTransform.setIdentity();
-  localTransform.setOrigin(btVector3(0.0f, 0.0f, getChassisDiff()));
+  localTransform.setOrigin(btVector3(0.0f, -0.2f, getChassisDiff()));
   compound->addChildShape(localTransform, chassisShape);
 
   createChassisRigidBodyFromShape(compound);
@@ -646,7 +650,7 @@ void PVehicle::createChassisRigidBodyFromShape(btCollisionShape* chassisShape)
 {
   btTransform chassisTransform;
   chassisTransform.setIdentity();
-  chassisTransform.setOrigin(btVector3(0.0f, 0.0f, getChassisDiff()));
+  chassisTransform.setOrigin(btVector3(0.0f, -0.2f, getChassisDiff()));
 
   /* Calculate its local inertia */
   btVector3 localInertia(0, 0, 0);
@@ -675,28 +679,25 @@ void PVehicle::addWheels(btVector3* halfExtents,
   /* The maximum length of the suspension (metres) */
   btScalar suspensionRestLength(type->suspension.restlength);
 
-  /* The height where the wheels are connected to the chassis */
-  btScalar connectionHeight(1.2f);
-
   /* Adds the front wheels */
   vec3f pos = type->part[0].wheel[0].pt; 
-  vehicle->addWheel(btVector3(pos[0], pos[1], connectionHeight), 
+  vehicle->addWheel(btVector3(pos[0], pos[1], pos[2]), 
         wheelDirectionCS0, wheelAxleCS, 
         suspensionRestLength, wheelRadius, tuning, true);
 
   pos = type->part[0].wheel[1].pt; 
-  vehicle->addWheel(btVector3(pos[0], pos[1], connectionHeight), 
+  vehicle->addWheel(btVector3(pos[0], pos[1], pos[2]), 
         wheelDirectionCS0, wheelAxleCS, suspensionRestLength, wheelRadius,
         tuning, true);
 
   /* Adds the rear wheels */
   pos = type->part[0].wheel[2].pt; 
-  vehicle->addWheel(btVector3(pos[0], pos[1], connectionHeight), 
+  vehicle->addWheel(btVector3(pos[0], pos[1], pos[2]), 
         wheelDirectionCS0, wheelAxleCS, suspensionRestLength, wheelRadius,
         tuning, false);
 
   pos = type->part[0].wheel[3].pt; 
-  vehicle->addWheel(btVector3(pos[0], pos[1], connectionHeight), 
+  vehicle->addWheel(btVector3(pos[0], pos[1], pos[2]), 
         wheelDirectionCS0, wheelAxleCS, suspensionRestLength, wheelRadius,
         tuning, false); 
 
@@ -726,7 +727,7 @@ void PVehicle::addWheels(btVector3* halfExtents,
     /* The coefficient of friction between the tyre and the ground.
      * Should be about 0.8 for realistic cars, but can increased for better
      * handling. */
-    wheel.m_frictionSlip = btScalar(0.8);
+    wheel.m_frictionSlip = type->part[0].wheel[1].friction;
     /* Reduces the rolling torque applied from the wheels that cause the
      * vehicle to roll over.
      * This is a bit of a hack, but it's quite effective. 0.0 = no roll,

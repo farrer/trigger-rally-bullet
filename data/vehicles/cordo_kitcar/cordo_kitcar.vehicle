@@ -52,10 +52,10 @@
 		model="cordo_kitcar.obj"
 		scale="0.01">
 		
-		<wheel scale="0.01" steer="0.85" pos="0.63, 0.87, -0.17" />
-		<wheel scale="0.01" steer="0.85" pos="-0.63, 0.87, -0.17" />
-		<wheel scale="0.01" pos="0.63, -1.27, -0.17" />
-		<wheel scale="0.01" pos="-0.63, -1.27, -0.17" />
+		<wheel scale="0.01" friction="0.8" steer="0.85" pos="0.63, 0.87, 1.2" />
+		<wheel scale="0.01" friction="0.8" steer="0.85" pos="-0.63, 0.87, 1.2" />
+		<wheel scale="0.01" friction="0.8" pos="0.63, -1.27, 1.2" />
+		<wheel scale="0.01" friction="0.8" pos="-0.63, -1.27, 1.2" />
 		
 		<clip type="body" pos="1.0, 1.5, 1.0" force="300000.0" dampening="30000.0" />
 		<clip type="body" pos="-1.0, 1.5, 1.0" force="300000.0" dampening="30000.0" />

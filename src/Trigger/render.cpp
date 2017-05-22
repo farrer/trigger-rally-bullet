@@ -612,7 +612,7 @@ glMatrixMode(GL_PROJECTION);
                     glPushMatrix(); // 2
 
                     vec3f &wpos = vtype->part[i].wheel[j].pt;
-                    glTranslatef(wpos.x, wpos.y, wpos.z);
+                    glTranslatef(wpos.x, wpos.y, wpos.z - 1.4f);
 
                     float scale = vtype->part[i].wheel[j].scale;
                     glScalef(scale,scale,scale);

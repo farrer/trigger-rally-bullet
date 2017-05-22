@@ -29,8 +29,14 @@ Definitive Changes:
        <wheel scale="value" pos="x, y, z" />
        \
         scale: is the total scale of the wheel. To convert from old
-               definitions, calculate the value by the old wheelscale * radius.
-        pos: wheel position, defined exactly as it was.
+             definitions, calculate the value by the old wheelscale * radius.
+        pos: wheel position. Note that values for height (z) now define the
+             height where the wheel connect to the chassis, in meters, and 
+             should be different than the old ones (which was relative and in
+             rendering units).
+        friction: The coefficient of friction between the tyre and the ground.
+             Should be about 0.8 for realistic cars, but can increased for 
+             better handling.
 
      Added <brake> definition (as a child of vehicle), with the following:
        <brake normal="value" handbrake="value"> 
@@ -41,7 +47,8 @@ Definitive Changes:
 
      Added <suspension> definition (as a child of vehicle), with:
         <suspension stiffness="value" compressionk="value"
-                    relaxationk="value" restlength="value"/>
+                    relaxationk="value" restlength="value"
+                    connectionheight="value"/>
         \
          stiffness: reference values: 10.0 - Offroad buggy, 50.0 - Sports car, 
                     200.0 - F1 Car. Default: 35

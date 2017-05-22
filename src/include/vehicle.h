@@ -209,6 +209,7 @@ struct vehicle_clip_s {
 struct PVehicleTypeWheel {
   vec3f pt;
   float scale;
+  float friction;
 };
 
 
@@ -411,7 +412,7 @@ public:
   };
 
   /*! \return chassis center of mass difference to the geometric center */
-  const float getChassisDiff() const { return 1.0f; };
+  const float getChassisDiff() const { return chassisDiff; };
 
   /*! Force a the debug draw of bullet's representation of this vehicle */
   void debugDraw();
@@ -481,6 +482,7 @@ private:
   /*! Collision shapes of the vehicle (ie: chassis, wheels) */
   btAlignedObjectArray<btCollisionShape*> collisionShapes;
   btDefaultMotionState* chassisMotionState; /**< Motion state for chassis */
+  btScalar chassisDiff;    /**< Chassis difference from center of mass */
   btScalar wheelWidth;     /**< Current wheel width */
   btScalar wheelRadius;    /**< Current wheel radius */
   btScalar wheelPerimeter; /**< wheelRadius * 2 * M_PI */
