@@ -8,11 +8,7 @@
 
 // vehicle core types
 
-#define VCTYPE_TANK         1
-#define VCTYPE_HELICOPTER   2
-#define VCTYPE_PLANE        3
-#define VCTYPE_HOVERCRAFT   4
-#define VCTYPE_CAR      5
+#define VCTYPE_CAR      0
 
 
 // vehicle clip point types

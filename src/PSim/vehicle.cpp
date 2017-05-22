@@ -190,10 +190,6 @@ bool PVehicleType::load(const std::string &filename, PSSModel &ssModel)
   // VEHICLE TYPE POINT
 
   if (false) ;
-  else if (!strcmp(val, "tank")) coretype = VCTYPE_TANK;
-  else if (!strcmp(val, "helicopter")) coretype = VCTYPE_HELICOPTER;
-  else if (!strcmp(val, "plane")) coretype = VCTYPE_PLANE;
-  else if (!strcmp(val, "hovercraft")) coretype = VCTYPE_HOVERCRAFT;
   else if (!strcmp(val, "car")) coretype = VCTYPE_CAR;
   else {
     if (PUtil::isDebugLevel(DEBUGLEVEL_TEST))
