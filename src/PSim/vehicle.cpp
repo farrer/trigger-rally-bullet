@@ -982,6 +982,9 @@ void PVehicle::tick(float delta)
       /* Hand brake is always applied on rear wheels */
       vehicle->setBrake(type->handbrake * state.brake2, 2);
       vehicle->setBrake(type->handbrake * state.brake2, 3);
+      /* Should apply a torque to the chassis (due to wheel lock) */
+      btVector3 av = chassisRigidBody->getAngularVelocity();
+      chassisRigidBody->applyTorque(av * state.brake2 * -type->handbrake);
     } else {
       /* Normal brake is applied on transmission wheels */
       if((type->wheeldrive == PVehicleType::WHEEL_DRIVE_TYPE_RWD) || 
