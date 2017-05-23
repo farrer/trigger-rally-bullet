@@ -140,6 +140,7 @@ bool PVehicleType::load(const std::string &filename, PSSModel &ssModel)
   suspension.compressionk = 0.3f;
   suspension.relaxationk = 0.5f;
   suspension.restlength = 0.7f;
+  suspension.maxtravel = 500;
   
   wheelmodel = nullptr;
   
@@ -247,6 +248,10 @@ bool PVehicleType::load(const std::string &filename, PSSModel &ssModel)
       val = walk->Attribute("restlength");
       if(val != nullptr) {
         suspension.restlength = atof(val);
+      }
+      val = walk->Attribute("maxtravel");
+      if(val != nullptr) {
+        suspension.maxtravel = atof(val);
       }
     } else if (!strcmp(walk->Value(), "genparams")) {
 
@@ -442,6 +447,8 @@ bool PVehicleType::load(const std::string &filename, PSSModel &ssModel)
           PVehicleTypeWheel vtw;
           
           vtw.scale = 1.0f;
+          vtw.rollinfluence = 1.0f;
+          vtw.friction = 0.8f;
           
           val = walk2->Attribute("pos");
           if (!val) {
@@ -457,6 +464,9 @@ bool PVehicleType::load(const std::string &filename, PSSModel &ssModel)
 
           val = walk2->Attribute("friction");
           if (val) vtw.friction = atof(val);
+
+          val = walk2->Attribute("rollinfluence");
+          if (val) vtw.rollinfluence = atof(val);
           
           vtp->wheel.push_back(vtw);
         } else if (!strcmp(walk2->Value(), "jetflame")) {
@@ -705,6 +715,8 @@ void PVehicle::addWheels(btVector3* halfExtents,
     /* The stiffness constant for the suspension. 10.0 - Offroad buggy,
      * 50.0 - Sports car, 200.0 - F1 Car */
     wheel.m_suspensionStiffness = type->suspension.stiffness;
+    /* The maximum distance the suspension can be compressed (centimetres) */
+    wheel.m_maxSuspensionTravelCm = type->suspension.maxtravel;
     /* The damping coefficient for when the suspension is compressed. Set
      * to k * 2.0 * btSqrt(m_suspensionStiffness) so k is proportional to 
      * critical damping.
@@ -723,7 +735,7 @@ void PVehicle::addWheels(btVector3* halfExtents,
     /* The coefficient of friction between the tyre and the ground.
      * Should be about 0.8 for realistic cars, but can increased for better
      * handling. */
-    wheel.m_frictionSlip = type->part[0].wheel[1].friction;
+    wheel.m_frictionSlip = type->part[0].wheel[i].friction;
     /* Reduces the rolling torque applied from the wheels that cause the
      * vehicle to roll over.
      * This is a bit of a hack, but it's quite effective. 0.0 = no roll,
@@ -731,7 +743,7 @@ void PVehicle::addWheels(btVector3* halfExtents,
      * If m_frictionSlip is too high, you'll need to reduce this to stop
      * the vehicle rolling over.
      * You should also try lowering the vehicle's centre of mass */
-    wheel.m_rollInfluence = 1;
+    wheel.m_rollInfluence = type->part[0].wheel[i].rollinfluence;
   }
 }
 

@@ -206,6 +206,7 @@ struct PVehicleTypeWheel {
   vec3f pt;
   float scale;
   float friction;
+  float rollinfluence;
 };
 
 
@@ -260,6 +261,7 @@ public:
      float compressionk;
      float relaxationk;
      float restlength;
+     float maxtravel;
   };
 
   SuspensionInfo suspension;

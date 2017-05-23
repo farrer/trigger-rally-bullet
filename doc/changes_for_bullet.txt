@@ -26,7 +26,8 @@ Definitive Changes:
 
      Each <wheel> should be defined with exact ordering, front-right,
      front-left, rear-right, rear-left, and have only the following parameters:
-       <wheel scale="value" pos="x, y, z" />
+       <wheel friction="value" rollinfluence="value" scale="value" 
+              pos="x, y, z" />
        \
         scale: is the total scale of the wheel. To convert from old
              definitions, calculate the value by the old wheelscale * radius.
@@ -37,6 +38,11 @@ Definitive Changes:
         friction: The coefficient of friction between the tyre and the ground.
              Should be about 0.8 for realistic cars, but can increased for 
              better handling.
+        rollinfluence: Reduces the rolling torque applied from the wheels that 
+             cause the vehicle to roll over. This is a bit of a hack, but it's 
+             quite effective. 0.0 = no roll, 1.0 = physical behaviour.
+             If wheel friction is too high, you'll need to reduce this to stop
+             the vehicle rolling over.
 
      Added <brake> definition (as a child of vehicle), with the following:
        <brake normal="value" handbrake="value"> 
@@ -49,7 +55,7 @@ Definitive Changes:
      Added <suspension> definition (as a child of vehicle), with:
         <suspension stiffness="value" compressionk="value"
                     relaxationk="value" restlength="value"
-                    connectionheight="value"/>
+                    maxtravel="value"/>
         \
          stiffness: reference values: 10.0 - Offroad buggy, 50.0 - Sports car, 
                     200.0 - F1 Car. Default: 35
@@ -61,6 +67,8 @@ Definitive Changes:
                     compressionk, eg: 0.2 to 0.5. Default: 0.5
          restlength: The maximum length of the suspension (metres). 
                     Default: 0.7
+         maxtravel: The maximum distance the suspension can be compressed 
+                    (centimetres). Default: 500
 
 Current Changes (will need to revert them or do some work to be definitive):
    - Circuits with negative positions won't work, as I only defined the
