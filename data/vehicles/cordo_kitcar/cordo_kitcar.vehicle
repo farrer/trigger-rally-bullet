@@ -10,8 +10,8 @@
 		handling="good" />
 
    <brake
-      normal="50.0"
-      handbrake="500.0" />
+      normal="20.0"
+      handbrake="80.0" />
 
    <suspension
       stiffness="35.0"

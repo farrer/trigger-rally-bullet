@@ -410,6 +410,9 @@ public:
   /*! \return chassis center of mass difference to the geometric center */
   const float getChassisDiff() const { return chassisDiff; };
 
+  /*! \return if handbrake is curently active and applyed */
+  const bool isHandBrakeActive() const { return state.brake2 >= 0.01f; };
+
   /*! Force a the debug draw of bullet's representation of this vehicle */
   void debugDraw();
 

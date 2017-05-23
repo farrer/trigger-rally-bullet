@@ -133,8 +133,8 @@ bool PVehicleType::load(const std::string &filename, PSSModel &ssModel)
   
   wheeldrive = WHEEL_DRIVE_TYPE_FWD;
   mass = 1.0;
-  normalbrake = 50.0f;
-  handbrake = 500.0f;
+  normalbrake = 20.0f;
+  handbrake = 80.0f;
 
   suspension.stiffness = 35.0f;
   suspension.compressionk = 0.3f;
@@ -978,13 +978,13 @@ void PVehicle::tick(float delta)
 
   /* Apply Brakes */
   if(isBrakeing) {
-    if(state.brake2 >= 0.01f) {
+    if(isHandBrakeActive()) {
       /* Hand brake is always applied on rear wheels */
       vehicle->setBrake(type->handbrake * state.brake2, 2);
       vehicle->setBrake(type->handbrake * state.brake2, 3);
       /* Should apply a torque to the chassis (due to wheel lock) */
       btVector3 av = chassisRigidBody->getAngularVelocity();
-      chassisRigidBody->applyTorque(av * state.brake2 * -type->handbrake);
+      chassisRigidBody->applyTorque(av * state.brake2 * -20 * type->handbrake);
     } else {
       /* Normal brake is applied on transmission wheels */
       if((type->wheeldrive == PVehicleType::WHEEL_DRIVE_TYPE_RWD) || 
@@ -1009,7 +1009,6 @@ void PVehicle::tick(float delta)
   /* Apply turn factor to front wheels */
   vehicle->setSteeringValue(-1*turnfactor, 0);
   vehicle->setSteeringValue(-1*turnfactor, 1);
-
 
     //(1.0f + fabsf(wheel_angvel) / 70.0f);
 #if 0

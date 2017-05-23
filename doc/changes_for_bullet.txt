@@ -42,8 +42,9 @@ Definitive Changes:
        <brake normal="value" handbrake="value"> 
           The normal brake is effective on the wheels which receive engine's
           transmisson power. Handbrake will affect rear wheels. Usually, 
-          handbrake values should be greater than normal brake ones. 
-          Default: normal=50, handbrake=500.
+          handbrake values should be greater than normal brake ones.
+          Note: Handbrake should be used to drift on turns.
+          Default: normal=20, handbrake=80.
 
      Added <suspension> definition (as a child of vehicle), with:
         <suspension stiffness="value" compressionk="value"
@@ -75,8 +76,8 @@ Current Changes (will need to revert them or do some work to be definitive):
 Currently Broken (will probably fix them) or TODOs :
    - Dust trails is broken. Must check;
    - Must test sound effects.
-   - Tweak brake and handbrake values. Check better handbrake value for
-     good car's drift;
+   - Check drift; Should be more similar to the previous one.
+   - Sometimes at higher velocities is too easy to loss car control;
    - Different friction values for terrains (use bullet's submeshes?);
    - TODO: should check the terrain's friction.
 
