@@ -264,7 +264,15 @@ public:
      float maxtravel;
   };
 
-  SuspensionInfo suspension;
+  SuspensionInfo suspension; /**< Suspension information */
+
+  /*! Parameters relative to drift implementation */
+  struct DriftInfo {
+     float threshold; /**< Threshold: from 0.0 (never drift) 
+                            to 4.0 (always drift, even when straight. */
+     float torquelevel; /**< Torque level to apply */
+  };
+  DriftInfo drift; /**< Drift information */
   
   std::vector<PVehicleTypePart> part;
   

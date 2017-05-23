@@ -141,6 +141,9 @@ bool PVehicleType::load(const std::string &filename, PSSModel &ssModel)
   suspension.relaxationk = 0.5f;
   suspension.restlength = 0.7f;
   suspension.maxtravel = 500;
+
+  drift.threshold = 2.0f;
+  drift.torquelevel = 20.0f;
   
   wheelmodel = nullptr;
   
@@ -252,6 +255,15 @@ bool PVehicleType::load(const std::string &filename, PSSModel &ssModel)
       val = walk->Attribute("maxtravel");
       if(val != nullptr) {
         suspension.maxtravel = atof(val);
+      }
+    } else if (!strcmp(walk->Value(), "drift")) {
+      val = walk->Attribute("threshold");
+      if(val != nullptr) {
+        drift.threshold = atof(val);
+      }
+      val = walk->Attribute("torquelevel");
+      if(val != nullptr) {
+        drift.torquelevel = atof(val);
       }
     } else if (!strcmp(walk->Value(), "genparams")) {
 
@@ -1028,6 +1040,12 @@ void PVehicle::tick(float delta)
   skid_level = 4.0f;
   for(int i=0; i < 4; i++) {
      skid_level -= vehicle->getWheelInfo(i).m_skidInfo;
+  }
+
+  if(skid_level < type->drift.threshold) {
+     btVector3 av = chassisRigidBody->getAngularVelocity();
+     chassisRigidBody->applyTorque(av * (type->drift.threshold - skid_level) * 
+           (-type->drift.torquelevel));
   }
 
     //(1.0f + fabsf(wheel_angvel) / 70.0f);

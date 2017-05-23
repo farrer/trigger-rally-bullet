@@ -70,6 +70,16 @@ Definitive Changes:
          maxtravel: The maximum distance the suspension can be compressed 
                     (centimetres). Default: 500
 
+     Added <drift> definition (as a child of vehicle), with:
+        <drift threshold="value" torquelevel="value"/>
+        \
+         threshold: wheels total skid where the vehicle should drift. 
+                    Range: 0.0 (never drift) to 4.0 (always drift, even when
+                    straight). Note: the drift is obviously dependent of 
+                    angular velocity. Default: 2.0
+         torquelevel: level of torque to apply. Default: 20.
+
+
 Current Changes (will need to revert them or do some work to be definitive):
    - Circuits with negative positions won't work, as I only defined the
      physical mesh to be positive and without overlaping a :1 map definition;
