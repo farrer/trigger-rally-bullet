@@ -1916,7 +1916,7 @@ void MainApp::tickStateGame(float delta)
     audinst_wind->setGain(windlevel * 0.03f * cfg_volume_sfx);
     audinst_wind->setPitch(windlevel * 0.02f + 0.9f);
     
-    audinst_gravel->setGain(vehic->getSkidLevel() * 0.1f * cfg_volume_sfx);
+    audinst_gravel->setGain(vehic->getSkidLevel() * cfg_volume_sfx);
     audinst_gravel->setPitch(1.0f);//vehic->getEngineRPM() / 7500.0f);
     
     if (vehic->getFlagGearChange()) {

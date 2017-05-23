@@ -302,7 +302,7 @@ public:
 struct PVehicleWheel {
   btTransform worldtrans;
   
-  float skidding, dirtthrow;
+  float dirtthrow;
   vec3f dirtthrowpos, dirtthrowvec;
   
   float bumplast, bumpnext, bumptravel;
@@ -366,9 +366,6 @@ public:
   
 public:
   v_control_s ctrl;
-  
-  // info
-  float skid_level;
   
 public:
 /*  
@@ -492,5 +489,9 @@ private:
    * for compatibility with the way it was implemented for camera retrieve
    * informations about vehicle. */
   PReferenceFrame curReference;
+
+  /*! Skid level of all wheels. From 0 (full traction) to 
+   * 4 (all full sliding). */
+  float skid_level; 
 
 };

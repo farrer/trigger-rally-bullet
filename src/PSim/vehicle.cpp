@@ -1022,11 +1022,18 @@ void PVehicle::tick(float delta)
   vehicle->setSteeringValue(-1*turnfactor, 0);
   vehicle->setSteeringValue(-1*turnfactor, 1);
 
+  /* Set current skid_level.
+   * Note: for compatibility with the old value, we kept it inverse of
+   *       what is defined from Bullet. */
+  skid_level = 4.0f;
+  for(int i=0; i < 4; i++) {
+     skid_level -= vehicle->getWheelInfo(i).m_skidInfo;
+  }
+
     //(1.0f + fabsf(wheel_angvel) / 70.0f);
 #if 0
   wheel_angvel = 0.0f;
-  
-  skid_level = 0.0f;
+ 
   
   for (unsigned int i=0; i<part.size(); ++i) {
     for (unsigned int j=0; j<type->part[i].clip.size(); ++j) {
