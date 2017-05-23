@@ -72,19 +72,11 @@ Current Changes (will need to revert them or do some work to be definitive):
      with Cordo KitCar (and it's acting like a KitCar, rarely going near
      100-120km/h). Will check latter the other ones;
 
-Currently Broken (will probably fix them) :
-   - Car height position is broken. It's easy to fix, but will do that
-     when the physical definition is complete to avoid double work;
-   - Every rendering related to wheel's positions and angles are currently 
-     broken, as I did not ported the old values to the new ones (so, the
-     wheels aren't moving on the rendered vehicle, the dust trails won't 
-     work, etc.);
-   - Car's drift (will need to check the torque applied on that and port it
-     to Bullet's model);
-   - Slow down when off the 'road'. In fact I do not like the effect of
-     slowing the car when off the defined road. For me just the time penalty
-     should be sufficient;
-   - Wheel values from vehicle file are currently ignored;
-   - TODO: should read and define all physical values from vehicle's file.
+Currently Broken (will probably fix them) or TODOs :
+   - Dust trails is broken. Must check;
+   - Must test sound effects.
+   - Tweak brake and handbrake values. Check better handbrake value for
+     good car's drift;
+   - Different friction values for terrains (use bullet's submeshes?);
    - TODO: should check the terrain's friction.
 
