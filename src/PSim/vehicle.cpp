@@ -1042,7 +1042,7 @@ void PVehicle::tick(float delta)
      skid_level -= vehicle->getWheelInfo(i).m_skidInfo;
   }
 
-  if(skid_level < type->drift.threshold) {
+  if(skid_level >= type->drift.threshold) {
      btVector3 av = chassisRigidBody->getAngularVelocity();
      chassisRigidBody->applyTorque(av * (type->drift.threshold - skid_level) * 
            (-type->drift.torquelevel));

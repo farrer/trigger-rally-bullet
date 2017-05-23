@@ -268,8 +268,8 @@ public:
 
   /*! Parameters relative to drift implementation */
   struct DriftInfo {
-     float threshold; /**< Threshold: from 0.0 (never drift) 
-                            to 4.0 (always drift, even when straight. */
+     float threshold; /**< Threshold: from 4.0 (never drift) 
+                            to 0.0 (always drift, even when straight. */
      float torquelevel; /**< Torque level to apply */
   };
   DriftInfo drift; /**< Drift information */

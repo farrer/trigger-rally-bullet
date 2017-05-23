@@ -74,7 +74,7 @@ Definitive Changes:
         <drift threshold="value" torquelevel="value"/>
         \
          threshold: wheels total skid where the vehicle should drift. 
-                    Range: 0.0 (never drift) to 4.0 (always drift, even when
+                    Range: 4.0 (never drift) to 0.0 (always drift, even when
                     straight). Note: the drift is obviously dependent of 
                     angular velocity. Default: 2.0
          torquelevel: level of torque to apply. Default: 20.
