@@ -22,11 +22,8 @@
 
 	<genparams
 		mass="900.0"
+		steering="0.85"
 		wheelmodel="cordo_kitcar_wheel.obj" />
-	
-	<ctrlparams
-		speedrate="15.0"
-		turnspeedrate="0.0, 0.0, 10.0" />
 	
 	<drivesystem>
 		<engine powerscale="9000">

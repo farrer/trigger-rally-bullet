@@ -135,6 +135,7 @@ bool PVehicleType::load(const std::string &filename, PSSModel &ssModel)
   mass = 1.0;
   normalbrake = 20.0f;
   handbrake = 80.0f;
+  maxsteering = 1.0f;
 
   suspension.stiffness = 35.0f;
   suspension.compressionk = 0.3f;
@@ -148,15 +149,6 @@ bool PVehicleType::load(const std::string &filename, PSSModel &ssModel)
   wheelmodel = nullptr;
   
   ctrlrate.setDefaultRates();
-  
-  param.speed = 0.0;
-  param.turnspeed = vec3f::zero();
-  param.turnspeed_a = 1.0;
-  param.turnspeed_b = 0.0;
-  param.drag = vec3f::zero();
-  param.angdrag = 0.0;
-  param.lift = vec2f::zero();
-  param.fineffect = vec2f::zero();
   
   float allscale = 1.0;
   
@@ -273,39 +265,12 @@ bool PVehicleType::load(const std::string &filename, PSSModel &ssModel)
          mass = atof(val);
       }
 
+      val = walk->Attribute("steering");
+      if (val) maxsteering = atof(val);
+
       val = walk->Attribute("wheelmodel");
       if (val) wheelmodel = ssModel.loadModel(PUtil::assemblePath(val, filename));
       
-    } else if (!strcmp(walk->Value(), "ctrlparams")) {
-
-      val = walk->Attribute("speed");
-      if (val) param.speed = atof(val);
-
-      val = walk->Attribute("turnspeed");
-      if (val) sscanf(val, "%f , %f , %f", &param.turnspeed.x, &param.turnspeed.y, &param.turnspeed.z);
-
-      val = walk->Attribute("drag");
-      if (val) sscanf(val, "%f , %f , %f", &param.drag.x, &param.drag.y, &param.drag.z);
-
-      val = walk->Attribute("angdrag");
-      if (val) param.angdrag = atof(val);
-
-      val = walk->Attribute("lift");
-      if (val) sscanf(val, "%f , %f", &param.lift.x, &param.lift.y);
-
-
-      val = walk->Attribute("speedrate");
-      if (val) ctrlrate.throttle = atof(val);
-
-      val = walk->Attribute("turnspeedrate");
-      if (val) sscanf(val, "%f , %f , %f", &ctrlrate.turn.x, &ctrlrate.turn.y, &ctrlrate.turn.z);
-
-      val = walk->Attribute("turnspeedcoefficients");
-      if (val) sscanf(val, "%f , %f", &param.turnspeed_a, &param.turnspeed_b);
-
-      val = walk->Attribute("fineffect");
-      if (val) sscanf(val, "%f , %f", &param.fineffect.x, &param.fineffect.y);
-
     } else if (!strcmp(walk->Value(), "drivesystem")) {
       
       for (XMLElement *walk2 = walk->FirstChildElement();
@@ -1040,8 +1005,8 @@ void PVehicle::tick(float delta)
   }
 
   /* Apply turn factor to front wheels */
-  vehicle->setSteeringValue(-1*turnfactor, 0);
-  vehicle->setSteeringValue(-1*turnfactor, 1);
+  vehicle->setSteeringValue(-1*turnfactor * type->maxsteering, 0);
+  vehicle->setSteeringValue(-1*turnfactor * type->maxsteering, 1);
 
   /* Set current skid_level.
    * Note: for compatibility with the old value, we kept it inverse of

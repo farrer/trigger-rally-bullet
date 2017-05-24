@@ -251,6 +251,8 @@ public:
   int coretype;
   
   float mass; /**< Vehicle's mass */
+  float maxsteering; /**< Max angle in radians the wheels could have while
+                          steering */
   float normalbrake; /**< Normal (foot) brake value */
   float handbrake;   /**< Hand brake value */
 
@@ -285,16 +287,6 @@ public:
   float inverse_drive_total;
   
 public:
-  struct {
-    // shared
-    float speed;
-    vec3f turnspeed;
-    float turnspeed_a, turnspeed_b; // turnspeed = a + b * speed
-    vec3f drag;
-    float angdrag;
-    vec2f lift; // x = fin lift (hz), y = wing lift (vt)
-    vec2f fineffect; // x = rudder/fin (hz), y = tail (vt)
-  } param;
 
   v_control_s ctrlrate;
 

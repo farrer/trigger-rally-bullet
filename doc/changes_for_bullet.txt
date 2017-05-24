@@ -29,12 +29,19 @@ Definitive Changes:
       removed weightkg definition. It's now defined by the mass definition on
       <genparams>.
 
-     At <genparams> The mass is effective and should be defined in Kg (usually
-     is). dimension is no more used, as it's now dynamic calculated by the 
-     body's 3d model.
+     The section <genparams> is now defined as:
+     <genparams mass="value" steering="value" wheelmodel="value" />
+     \
+      mass: is now effective and should be defined in Kg (usually is).
+     \
+      steering: define the max angle, in radians, that steering wheels 
+            should have.
      \
       There's no more wheelscale parameter inside this section. The scale
-      should be defined for each wheel.
+            should be defined for each wheel. Also, dimension is no more used,
+            as it's now dynamic calculated by the body's 3d model.
+
+     Removed section <ctrlparams>.
 
      Each <wheel> should be defined with exact ordering, front-right,
      front-left, rear-right, rear-left, and have only the following parameters:
