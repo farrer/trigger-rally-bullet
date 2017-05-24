@@ -1017,7 +1017,7 @@ void PVehicle::tick(float delta)
       vehicle->setBrake(type->handbrake * state.brake2, 2);
       vehicle->setBrake(type->handbrake * state.brake2, 3);
       /* Should apply a torque to the chassis (due to wheel lock) */
-      applyZTorque(state.brake2 * type->handbrake, false); 
+      applyZTorque(type->handbrake * 0.5f, false); 
     } else {
       /* Normal brake is applied on transmission wheels */
       if((type->wheeldrive == PVehicleType::WHEEL_DRIVE_TYPE_RWD) || 
