@@ -14,7 +14,7 @@
       handbrake="80.0" />
 
    <suspension
-      stiffness="35.0"
+      stiffness="45.0"
       compressionk="0.3"
       relaxationk="0.5"
       restlength="0.7" 
@@ -54,13 +54,13 @@
 		scale="0.01">
 		
       <wheel scale="0.01" friction="0.8" rollinfluence="1.0f" 
-             pos="0.63, 0.87, 1.2" />
+             pos="0.63, 0.87, 1.15" />
       <wheel scale="0.01" friction="0.8" rollinfluence="1.0f" 
-             pos="-0.63, 0.87, 1.2" />
+             pos="-0.63, 0.87, 1.15" />
       <wheel scale="0.01" friction="0.8" rollinfluence="1.0f" 
-             pos="0.63, -1.27, 1.2" />
+             pos="0.63, -1.27, 1.15" />
       <wheel scale="0.01" friction="0.8" rollinfluence="1.0f" 
-             pos="-0.63, -1.27, 1.2" />
+             pos="-0.63, -1.27, 1.15" />
 		
 		<clip type="body" pos="1.0, 1.5, 1.0" force="300000.0" dampening="30000.0" />
 		<clip type="body" pos="-1.0, 1.5, 1.0" force="300000.0" dampening="30000.0" />

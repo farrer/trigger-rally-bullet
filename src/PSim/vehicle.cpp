@@ -41,7 +41,7 @@ void PDriveSystemInstance::tick(float delta, float throttle, float wheel_rps)
    * for the wheel revolutions per second (very high ones). Thus, to not
    * break the PDriveInstance or have to rewrite it from scratch, this
    * correction_multiplier is used. */
-  const float correction_multiplier = 14.0f;
+  const float correction_multiplier = 12.0f;
   wheel_rps *= correction_multiplier;
 
   rps = wheel_rps * dsys->gear[currentgear].y;
@@ -643,7 +643,7 @@ void PVehicle::createBulletVehicle()
   chassisDiff = 1.0f;
   btTransform localTransform;
   localTransform.setIdentity();
-  localTransform.setOrigin(btVector3(0.0f, -0.2f, getChassisDiff()));
+  localTransform.setOrigin(btVector3(0.0f, 0.0f, getChassisDiff()));
   compound->addChildShape(localTransform, chassisShape);
 
   createChassisRigidBodyFromShape(compound);
@@ -668,7 +668,7 @@ void PVehicle::createChassisRigidBodyFromShape(btCollisionShape* chassisShape)
 {
   btTransform chassisTransform;
   chassisTransform.setIdentity();
-  chassisTransform.setOrigin(btVector3(0.0f, -0.2f, getChassisDiff()));
+  chassisTransform.setOrigin(btVector3(0.0f, 0.0f, getChassisDiff()));
 
   /* Calculate its local inertia */
   btVector3 localInertia(0, 0, 0);
