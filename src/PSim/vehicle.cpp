@@ -142,8 +142,8 @@ bool PVehicleType::load(const std::string &filename, PSSModel &ssModel)
   suspension.restlength = 0.7f;
   suspension.maxtravel = 500;
 
-  drift.threshold = 2.0f;
-  drift.torquelevel = 20.0f;
+  drift.threshold = 4.0f;
+  drift.torquelevel = 1.0f;
   
   wheelmodel = nullptr;
   
@@ -863,6 +863,16 @@ void PVehicle::setPositionAndOrientation(const vec3f& pos, const quatf& ori)
   rigidBody->setCenterOfMassTransform(transform);
 }
 
+void PVehicle::applyZTorque(float mult, bool alwaysApply) 
+{
+   btVector3 dir(0.0f, 0.0f, chassisRigidBody->getAngularVelocity()[2]);
+   if((alwaysApply) || (fabs(dir[2]) < 1.0f)) {
+     /* Note: the fabs check is to avoid infinite spinning when applying
+      *       at the same direction. */
+     chassisRigidBody->applyTorqueImpulse(dir * mult); 
+  }
+}
+
 void PVehicle::tick(float delta)
 {
   /* Retrieve current position and orientation from bullet */
@@ -1007,8 +1017,7 @@ void PVehicle::tick(float delta)
       vehicle->setBrake(type->handbrake * state.brake2, 2);
       vehicle->setBrake(type->handbrake * state.brake2, 3);
       /* Should apply a torque to the chassis (due to wheel lock) */
-      btVector3 av = chassisRigidBody->getAngularVelocity();
-      chassisRigidBody->applyTorque(av * state.brake2 * -20 * type->handbrake);
+      applyZTorque(state.brake2 * type->handbrake, false); 
     } else {
       /* Normal brake is applied on transmission wheels */
       if((type->wheeldrive == PVehicleType::WHEEL_DRIVE_TYPE_RWD) || 
@@ -1042,11 +1051,10 @@ void PVehicle::tick(float delta)
      skid_level -= vehicle->getWheelInfo(i).m_skidInfo;
   }
 
-  if(skid_level >= type->drift.threshold) {
-     btVector3 av = chassisRigidBody->getAngularVelocity();
-     av[2] = 0.0f; // No effect on height.
-     chassisRigidBody->applyTorque(av * (skid_level - type->drift.threshold) * 
-           (-type->drift.torquelevel));
+  /* Apply torque for automatic drift */
+  if(skid_level > type->drift.threshold) {
+    applyZTorque((skid_level / 4.0f) * (type->drift.torquelevel), 
+          type->drift.torquelevel > 0.0f);
   }
 
     //(1.0f + fabsf(wheel_angvel) / 70.0f);

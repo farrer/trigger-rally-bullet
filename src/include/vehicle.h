@@ -269,8 +269,10 @@ public:
   /*! Parameters relative to drift implementation */
   struct DriftInfo {
      float threshold; /**< Threshold: from 4.0 (never drift) 
-                            to 0.0 (always drift, even when straight. */
-     float torquelevel; /**< Torque level to apply */
+                            to 0.0 (always drift). The value is relative
+                            to the wheel's slidding, 4 meaning that all wheels
+                            full slidding. */
+     float torquelevel; /**< Torque level to apply. Should be positive. */
   };
   DriftInfo drift; /**< Drift information */
   
@@ -481,6 +483,15 @@ private:
   void addWheels(btVector3* halfExtents,
         btRaycastVehicle::btVehicleTuning tuning);
 
+  /*! Apply a Z torque
+   * \param mult multiplier to the effect. Positive values is the drift
+   *        behaviour. If negative, will make the vehicle easer to control
+   *        (like a drive-assistence on turns). 
+   * \param alwaysApply if will apply the torque impulse independently
+   *        of current angular velocity. Note that it will allow infinite
+   *        spinning when enabled, if the multiplier is in the same direction
+   *        of the angular velocity (ie: > 0). */
+  void applyZTorque(float mult, bool alwaysApply);
   
   btRaycastVehicle* vehicle; /**< The bullet vehicle approximation */
   btVehicleRaycaster* vehicleRayCaster; /**< Raycaster used */

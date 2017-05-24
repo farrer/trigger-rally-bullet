@@ -8,6 +8,18 @@ Definitive Changes:
      effective when the car is stopped (in fact, when is almost stopped, where 
      speed <= 0.5km/h);
 
+   - About drifts: They could be achieved with two ways:
+     \
+      Automatic: set a threshold < 4.0 at drift vehicle parameter section. 
+      Manual: While turning, activate briefly the hand brake and control
+              the vehicle with wheels steering (and eventually normal brake).
+              The more potent is the handbrake, the more the drift effect
+              will be. For me it's the most please way to do drifts,
+              although very different from the original Trigger physics way.
+              This is why I defined also an automatic way to set drifts too,
+              in the hope of being somewhat compatible with the old way
+              (must check constants for better automatic drift thought).
+
    - Vehicle's file now have the following changes:
 
      At <pstats>, wheeldrive is now effective. It's used to define
@@ -49,7 +61,7 @@ Definitive Changes:
           The normal brake is effective on the wheels which receive engine's
           transmisson power. Handbrake will affect rear wheels. Usually, 
           handbrake values should be greater than normal brake ones.
-          Note: Handbrake should be used to drift on turns.
+          Note: Handbrake could be used to drift on turns.
           Default: normal=20, handbrake=80.
 
      Added <suspension> definition (as a child of vehicle), with:
@@ -71,14 +83,14 @@ Definitive Changes:
                     (centimetres). Default: 500
 
      Added <drift> definition (as a child of vehicle), with:
-        <drift threshold="value" torquelevel="value"/>
+        <dirft threshold="value" torquelevel="value"/>
         \
-         threshold: wheels total skid where the vehicle should drift. 
-                    Range: 4.0 (never drift) to 0.0 (always drift, even when
-                    straight). Note: the drift is obviously dependent of 
-                    angular velocity. Default: 2.0
-         torquelevel: level of torque to apply. Default: 20.
-
+         threshold: wheels total skid where the vehicle should be drift. 
+                    Range: 4.0 (never) to 0.0 (always). The value is relative 
+                    to the wheel's slidding, 4 meaning that all wheels full
+                    slidding. Default: 4.0 (disabled)
+         torquelevel: Torque level to apply when threshold was met. 
+                    Default: 1.0
 
 Current Changes (will need to revert them or do some work to be definitive):
    - Circuits with negative positions won't work, as I only defined the
@@ -94,8 +106,10 @@ Current Changes (will need to revert them or do some work to be definitive):
 Currently Broken (will probably fix them) or TODOs :
    - Dust trails is broken. Must check;
    - Must test sound effects.
-   - Check drift; Should be more similar to the previous one.
    - Sometimes at higher velocities is too easy to loss car control;
    - Different friction values for terrains (use bullet's submeshes?);
    - TODO: should check the terrain's friction.
+   - TODO: Must recheck all default values to more suitable values when
+           fully implement vehicle behaviour.
+   - FIX: all cars besides cordokitcar are broken, due to wheel Z position.
 
