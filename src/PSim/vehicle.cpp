@@ -1044,7 +1044,8 @@ void PVehicle::tick(float delta)
 
   if(skid_level >= type->drift.threshold) {
      btVector3 av = chassisRigidBody->getAngularVelocity();
-     chassisRigidBody->applyTorque(av * (type->drift.threshold - skid_level) * 
+     av[2] = 0.0f; // No effect on height.
+     chassisRigidBody->applyTorque(av * (skid_level - type->drift.threshold) * 
            (-type->drift.torquelevel));
   }
 
