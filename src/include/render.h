@@ -665,141 +665,37 @@ public:
     vec3f normal;
   };
 
-    ///
-    /// @brief Returns whether or not the given position is on road.
-    /// @param [in] pos         Position to be checked.
-    /// @returns Whether or not `pos` is on the road.
-    /// @retval true            If no roadmap was loaded.
-    /// @see `RoadMap`.
-    ///
-    bool getRmapOnRoad(const vec3f &pos) const
-    {
-        return rmap.isOnRoad(pos.x, pos.y, getMapSize());
-    }
+  ///
+  /// @brief Returns whether or not the given position is on road.
+  /// @param [in] pos         Position to be checked.
+  /// @returns Whether or not `pos` is on the road.
+  /// @retval true            If no roadmap was loaded.
+  /// @see `RoadMap`.
+  ///
+  bool getRmapOnRoad(const vec3f &pos) const
+  {
+    return rmap.isOnRoad(pos.x, pos.y, getMapSize());
+  }
 
-    ///
-    /// @brief Returns the color of the pixel in the colormap that corresponds
-    ///  to the given position in the terrain.
-    /// @note The height component Z is ignored.
-    /// @todo Should check if cmap.getcc() returns at least 3?
-    /// @todo Should check if cmap.getcx() == cmap.getcy()?
-    /// @todo Should remove paranoid clampings?
-    /// @todo Should actually measure performance of float vs int.
-    /// @param [in] pos   Position in the terrain.
-    /// @returns Color in OpenGL-style RGB.
-    ///
-    vec3f getCmapColor(const vec3f &pos) const
-    {
-        vec3f r;
-#if 0
-        const float ms = getMapSize();
-        float px = pos.x;
-        float py = pos.y;
-#else
-        const int ms = static_cast<int> (getMapSize());
-        int px = static_cast<int> (pos.x);
-        int py = static_cast<int> (pos.y);
-#endif
-        if (px >= ms)
-        {
-            do
-                px -= ms;
-            while (px > ms);
-        }
-        else
-        if (px < 0)
-        {
-            do
-                px += ms;
-            while (px < 0);
-        }
+  ///
+  /// @brief Returns the color of the pixel in the colormap that corresponds
+  ///  to the given position in the terrain.
+  /// @note The height component Z is ignored.
+  /// @todo Should check if cmap.getcc() returns at least 3?
+  /// @todo Should check if cmap.getcx() == cmap.getcy()?
+  /// @param [in] pos   Position in the terrain.
+  /// @returns Color in OpenGL-style RGB.
+  ///
+  vec3f getCmapColor(const vec3f &pos) const;
 
-        if (py >= ms)
-        {
-            do
-                py -= ms;
-            while (py > ms);
-        }
-        else
-        if (py < 0)
-        {
-            do
-                py += ms;
-            while (py < 0);
-        }
-
-        long int x = std::lround(px * cmap.getcx() / getMapSize());
-        long int y = std::lround(py * cmap.getcy() / getMapSize());
-
-        CLAMP_UPPER(x, cmap.getcx() - 1);
-        CLAMP_UPPER(y, cmap.getcy() - 1);
-        r.x = cmap.getByte((y * cmap.getcx() + x) * cmap.getcc() + 0) / 255.0f;
-        r.y = cmap.getByte((y * cmap.getcx() + x) * cmap.getcc() + 1) / 255.0f;
-        r.z = cmap.getByte((y * cmap.getcx() + x) * cmap.getcc() + 2) / 255.0f;
-        return r;
-    }
-
-    ///
-    /// @brief Returns the road surface type corresponding to the given position
-    ///  in the terrain.
-    /// @note The height component Z is ignored.
-    /// @todo Should remove paranoid clampings?
-    /// @todo Should actually measure performance of float vs int.
-    /// @param [in] pos   Position in the terrain.
-    /// @returns Terrain type.
-    ///
-    TerrainType getRoadSurface(const vec3f &pos) const
-    {
-        if (tmap.getData() == nullptr)
-            return TerrainType::Unknown;
-#if 0
-        const float ms = getMapSize();
-        float px = pos.x;
-        float py = pos.y;
-#else
-        const int ms = static_cast<int> (getMapSize());
-        int px = static_cast<int> (pos.x);
-        int py = static_cast<int> (pos.y);
-#endif
-        if (px >= ms)
-        {
-            do
-                px -= ms;
-            while (px > ms);
-        }
-        else
-        if (px < 0)
-        {
-            do
-                px += ms;
-            while (px < 0);
-        }
-
-        if (py >= ms)
-        {
-            do
-                py -= ms;
-            while (py > ms);
-        }
-        else
-        if (py < 0)
-        {
-            do
-                py += ms;
-            while (py < 0);
-        }
-
-        long int x = std::lround(px * tmap.getcx() / getMapSize());
-        long int y = std::lround(py * tmap.getcy() / getMapSize());
-        rgbcolor temp;
-
-        CLAMP_UPPER(x, tmap.getcx() - 1);
-        CLAMP_UPPER(y, tmap.getcy() - 1);
-        temp.r = tmap.getByte((y * tmap.getcx() + x) * tmap.getcc() + 0);
-        temp.g = tmap.getByte((y * tmap.getcx() + x) * tmap.getcc() + 1);
-        temp.b = tmap.getByte((y * tmap.getcx() + x) * tmap.getcc() + 2);
-        return PUtil::decideRoadSurface(temp);
-    }
+  ///
+  /// @brief Returns the road surface type corresponding to the given position
+  ///  in the terrain.
+  /// @note The height component Z is ignored.
+  /// @param [in] pos   Position in the terrain.
+  /// @returns Terrain type.
+  ///
+  TerrainType getRoadSurface(const vec3f &pos) const;
 
   void getContactInfo(ContactInfo &tci);
 

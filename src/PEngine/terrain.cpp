@@ -526,6 +526,51 @@ void PTerrain::createBulletStructures() {
   BulletLink::addRigidBody(rigidBody);
 }
 
+TerrainType PTerrain::getRoadSurface(const vec3f &pos) const
+{
+  if (tmap.getData() == nullptr)
+    return TerrainType::Unknown;
+  
+  const int ms = static_cast<int> (getMapSize());
+  int px = static_cast<int> (pos.x);
+  int py = static_cast<int> (pos.y);
+  
+  px = px % ms;
+  py = py % ms;
+
+  long int x = std::lround(px * tmap.getcx() / getMapSize());
+  long int y = std::lround(py * tmap.getcy() / getMapSize());
+  rgbcolor temp;
+
+  CLAMP_UPPER(x, tmap.getcx() - 1);
+  CLAMP_UPPER(y, tmap.getcy() - 1);
+  temp.r = tmap.getByte((y * tmap.getcx() + x) * tmap.getcc() + 0);
+  temp.g = tmap.getByte((y * tmap.getcx() + x) * tmap.getcc() + 1);
+  temp.b = tmap.getByte((y * tmap.getcx() + x) * tmap.getcc() + 2);
+  return PUtil::decideRoadSurface(temp);
+}
+
+vec3f PTerrain::getCmapColor(const vec3f &pos) const
+{
+  vec3f r;
+  const int ms = static_cast<int> (getMapSize());
+  int px = static_cast<int> (pos.x);
+  int py = static_cast<int> (pos.y);
+  
+  px = px % ms;
+  py = py % ms;
+
+  long int x = std::lround(px * cmap.getcx() / getMapSize());
+  long int y = std::lround(py * cmap.getcy() / getMapSize());
+
+  CLAMP_UPPER(x, cmap.getcx() - 1);
+  CLAMP_UPPER(y, cmap.getcy() - 1);
+  r.x = cmap.getByte((y * cmap.getcx() + x) * cmap.getcc() + 0) / 255.0f;
+  r.y = cmap.getByte((y * cmap.getcx() + x) * cmap.getcc() + 1) / 255.0f;
+  r.z = cmap.getByte((y * cmap.getcx() + x) * cmap.getcc() + 2) / 255.0f;
+  
+  return r;
+}
 
 void PTerrain::getContactInfo(ContactInfo &tci) {
   float x = tci.pos.x * scale_hz_inv;
